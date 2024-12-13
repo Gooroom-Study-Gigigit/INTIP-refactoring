@@ -1,0 +1,76 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
+
+name: Java CI with Gradle
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: "!contains(github.event.head_commit.message, '테스트코드 작성') && !contains(github.event.head_commit.message, '임시 작성' && !contains(github.event.head_commit.message, '배포x')"
+    
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - uses: actions/checkout@v2
+    - run: touch ./src/main/resources/application.properties
+    - run: echo "${{secrets.APPLICATION_PROPERTIES}}" > ./src/main/resources/application.properties
+    - uses: actions/upload-artifact@v4
+      with:
+        name: application.properties
+        path: ./src/main/resources/application.properties
+        
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+      
+    - name: Build with Gradle
+      run: ./gradlew build
+
+    - name: DockerHub Login
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.TOKEN }}
+
+    - name: Docker Image Build
+      run: docker build --no-cache -t ${{ secrets.USERNAME }}/${{ secrets.PROJECT_NAME }} .
+
+    - name: DockerHub Push
+      run: docker push ${{ secrets.USERNAME }}/${{ secrets.PROJECT_NAME }}
+
+    - name: Deploy to Server
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.HOST_ADDRESS }}
+        username: ${{ secrets.SERVER_USERNAME }}
+        key: ${{ secrets.SERVER_KEY }}
+        port : ${{ secrets.SERVER_PORT }}
+        script: |
+          docker stop ${{ secrets.APPLICATION_NAME }}
+          docker rm ${{ secrets.APPLICATION_NAME }}
+          docker rmi ${{ secrets.USERNAME }}/${{ secrets.PROJECT_NAME }}
+          docker pull ${{ secrets.USERNAME }}/${{ secrets.PROJECT_NAME }}
+          docker run --network=host -d -e TZ=Asia/Seoul  -v ${{ secrets.IMAGE_PATH }}:/app/images --name ${{ secrets.APPLICATION_NAME }} ${{ secrets.USERNAME }}/${{ secrets.PROJECT_NAME }}
+
+
+
+
+
+        
