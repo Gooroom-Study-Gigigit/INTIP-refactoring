@@ -1,6 +1,6 @@
 package kr.inuappcenterportal.inuportal.service;
 
-import kr.inuappcenterportal.inuportal.domain.Category;
+import kr.inuappcenterportal.inuportal.domain.category.Category;
 import kr.inuappcenterportal.inuportal.dto.CategoryDto;
 import kr.inuappcenterportal.inuportal.dto.CategoryUpdateDto;
 import kr.inuappcenterportal.inuportal.exception.ex.MyErrorCode;

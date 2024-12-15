@@ -1,6 +1,6 @@
 package kr.inuappcenterportal.inuportal.service;
 
-import kr.inuappcenterportal.inuportal.domain.Member;
+import kr.inuappcenterportal.inuportal.domain.member.Member;
 import kr.inuappcenterportal.inuportal.dto.PostDto;
 import kr.inuappcenterportal.inuportal.repository.CategoryRepository;
 import kr.inuappcenterportal.inuportal.repository.PostRepository;

@@ -1,6 +1,8 @@
-package kr.inuappcenterportal.inuportal.domain;
+package kr.inuappcenterportal.inuportal.domain.postLike;
 
 import jakarta.persistence.*;
+import kr.inuappcenterportal.inuportal.domain.member.Member;
+import kr.inuappcenterportal.inuportal.domain.post.Post;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;

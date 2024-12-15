@@ -1,6 +1,7 @@
-package kr.inuappcenterportal.inuportal.domain;
+package kr.inuappcenterportal.inuportal.domain.fire;
 
 import jakarta.persistence.*;
+import kr.inuappcenterportal.inuportal.domain.BaseTimeEntity;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -10,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "fire")
-public class Fire extends BaseTimeEntity{
+public class Fire extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

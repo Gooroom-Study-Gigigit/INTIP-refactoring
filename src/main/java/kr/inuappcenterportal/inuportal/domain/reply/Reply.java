@@ -1,6 +1,10 @@
-package kr.inuappcenterportal.inuportal.domain;
+package kr.inuappcenterportal.inuportal.domain.reply;
 
 import jakarta.persistence.*;
+import kr.inuappcenterportal.inuportal.domain.BaseTimeEntity;
+import kr.inuappcenterportal.inuportal.domain.member.Member;
+import kr.inuappcenterportal.inuportal.domain.post.Post;
+import kr.inuappcenterportal.inuportal.domain.replylike.ReplyLike;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,7 +18,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "reply")
-public class Reply extends BaseTimeEntity{
+public class Reply extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -1,7 +1,7 @@
 package kr.inuappcenterportal.inuportal.dto;
 
 
-import kr.inuappcenterportal.inuportal.domain.Fire;
+import kr.inuappcenterportal.inuportal.domain.fire.Fire;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

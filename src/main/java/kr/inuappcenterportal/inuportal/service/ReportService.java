@@ -1,6 +1,6 @@
 package kr.inuappcenterportal.inuportal.service;
 
-import kr.inuappcenterportal.inuportal.domain.Report;
+import kr.inuappcenterportal.inuportal.domain.report.Report;
 import kr.inuappcenterportal.inuportal.dto.ReportListResponseDto;
 import kr.inuappcenterportal.inuportal.dto.ReportRequestDto;
 import kr.inuappcenterportal.inuportal.repository.ReportRepository;

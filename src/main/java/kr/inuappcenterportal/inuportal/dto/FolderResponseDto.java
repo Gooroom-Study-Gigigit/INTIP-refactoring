@@ -1,7 +1,7 @@
 package kr.inuappcenterportal.inuportal.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import kr.inuappcenterportal.inuportal.domain.Folder;
+import kr.inuappcenterportal.inuportal.domain.folder.Folder;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -1,4 +1,4 @@
-package kr.inuappcenterportal.inuportal.domain;
+package kr.inuappcenterportal.inuportal.domain.category;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

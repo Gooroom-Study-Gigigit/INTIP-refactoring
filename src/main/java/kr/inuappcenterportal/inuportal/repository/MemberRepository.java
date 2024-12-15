@@ -1,6 +1,6 @@
 package kr.inuappcenterportal.inuportal.repository;
 
-import kr.inuappcenterportal.inuportal.domain.Member;
+import kr.inuappcenterportal.inuportal.domain.member.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

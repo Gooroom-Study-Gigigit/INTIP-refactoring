@@ -1,7 +1,6 @@
 package kr.inuappcenterportal.inuportal.service;
 
-import jakarta.annotation.PostConstruct;
-import kr.inuappcenterportal.inuportal.domain.Schedule;
+import kr.inuappcenterportal.inuportal.domain.schedule.Schedule;
 import kr.inuappcenterportal.inuportal.dto.ScheduleResponseDto;
 import kr.inuappcenterportal.inuportal.repository.ScheduleRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +11,6 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

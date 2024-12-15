@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import kr.inuappcenterportal.inuportal.domain.Member;
+import kr.inuappcenterportal.inuportal.domain.member.Member;
 import kr.inuappcenterportal.inuportal.dto.ListResponseDto;
 import kr.inuappcenterportal.inuportal.dto.ResponseDto;
 import kr.inuappcenterportal.inuportal.service.FolderService;

@@ -1,7 +1,6 @@
 package kr.inuappcenterportal.inuportal.service;
 
-import jakarta.annotation.PostConstruct;
-import kr.inuappcenterportal.inuportal.domain.Notice;
+import kr.inuappcenterportal.inuportal.domain.notice.Notice;
 import kr.inuappcenterportal.inuportal.dto.NoticeListResponseDto;
 import kr.inuappcenterportal.inuportal.dto.NoticePageResponseDto;
 import kr.inuappcenterportal.inuportal.exception.ex.MyErrorCode;
@@ -13,11 +12,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

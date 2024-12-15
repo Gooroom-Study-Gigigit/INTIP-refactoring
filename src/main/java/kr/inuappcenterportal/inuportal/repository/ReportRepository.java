@@ -1,6 +1,6 @@
 package kr.inuappcenterportal.inuportal.repository;
 
-import kr.inuappcenterportal.inuportal.domain.Report;
+import kr.inuappcenterportal.inuportal.domain.report.Report;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

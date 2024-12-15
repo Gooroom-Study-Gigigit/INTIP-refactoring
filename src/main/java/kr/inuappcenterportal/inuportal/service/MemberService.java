@@ -1,7 +1,7 @@
 package kr.inuappcenterportal.inuportal.service;
 
 import kr.inuappcenterportal.inuportal.config.TokenProvider;
-import kr.inuappcenterportal.inuportal.domain.Member;
+import kr.inuappcenterportal.inuportal.domain.member.Member;
 import kr.inuappcenterportal.inuportal.dto.LoginDto;
 import kr.inuappcenterportal.inuportal.dto.MemberResponseDto;
 import kr.inuappcenterportal.inuportal.dto.MemberUpdateNicknameDto;

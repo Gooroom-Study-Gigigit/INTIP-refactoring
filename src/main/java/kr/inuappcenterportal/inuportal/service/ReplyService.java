@@ -1,9 +1,9 @@
 package kr.inuappcenterportal.inuportal.service;
 
-import kr.inuappcenterportal.inuportal.domain.Member;
-import kr.inuappcenterportal.inuportal.domain.Post;
-import kr.inuappcenterportal.inuportal.domain.Reply;
-import kr.inuappcenterportal.inuportal.domain.ReplyLike;
+import kr.inuappcenterportal.inuportal.domain.member.Member;
+import kr.inuappcenterportal.inuportal.domain.post.Post;
+import kr.inuappcenterportal.inuportal.domain.reply.Reply;
+import kr.inuappcenterportal.inuportal.domain.replylike.ReplyLike;
 import kr.inuappcenterportal.inuportal.dto.ReReplyResponseDto;
 import kr.inuappcenterportal.inuportal.dto.ReplyDto;
 import kr.inuappcenterportal.inuportal.dto.ReplyListResponseDto;

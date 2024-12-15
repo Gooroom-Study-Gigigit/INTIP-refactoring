@@ -2,8 +2,8 @@ package kr.inuappcenterportal.inuportal.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.inuappcenterportal.inuportal.domain.Fire;
-import kr.inuappcenterportal.inuportal.domain.Member;
+import kr.inuappcenterportal.inuportal.domain.fire.Fire;
+import kr.inuappcenterportal.inuportal.domain.member.Member;
 import kr.inuappcenterportal.inuportal.dto.FireListResponseDto;
 import kr.inuappcenterportal.inuportal.dto.FirePageResponseDto;
 import kr.inuappcenterportal.inuportal.dto.FireRatingDto;

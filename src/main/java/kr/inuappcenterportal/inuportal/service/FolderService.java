@@ -1,6 +1,10 @@
 package kr.inuappcenterportal.inuportal.service;
 
-import kr.inuappcenterportal.inuportal.domain.*;
+import kr.inuappcenterportal.inuportal.domain.folder.Folder;
+import kr.inuappcenterportal.inuportal.domain.folderPost.FolderPost;
+import kr.inuappcenterportal.inuportal.domain.member.Member;
+import kr.inuappcenterportal.inuportal.domain.post.Post;
+import kr.inuappcenterportal.inuportal.domain.scrap.Scrap;
 import kr.inuappcenterportal.inuportal.dto.*;
 import kr.inuappcenterportal.inuportal.exception.ex.MyErrorCode;
 import kr.inuappcenterportal.inuportal.exception.ex.MyException;

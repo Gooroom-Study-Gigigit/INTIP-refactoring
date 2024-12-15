@@ -1,8 +1,8 @@
 package kr.inuappcenterportal.inuportal.repository;
 
 import jakarta.persistence.LockModeType;
-import kr.inuappcenterportal.inuportal.domain.Member;
-import kr.inuappcenterportal.inuportal.domain.Post;
+import kr.inuappcenterportal.inuportal.domain.member.Member;
+import kr.inuappcenterportal.inuportal.domain.post.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;

@@ -1,6 +1,9 @@
-package kr.inuappcenterportal.inuportal.domain;
+package kr.inuappcenterportal.inuportal.domain.folderPost;
 
 import jakarta.persistence.*;
+import kr.inuappcenterportal.inuportal.domain.folder.Folder;
+import kr.inuappcenterportal.inuportal.domain.post.Post;
+import kr.inuappcenterportal.inuportal.domain.scrap.Scrap;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;

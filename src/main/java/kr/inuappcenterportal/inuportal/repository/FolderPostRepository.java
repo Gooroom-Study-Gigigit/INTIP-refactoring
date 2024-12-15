@@ -1,8 +1,8 @@
 package kr.inuappcenterportal.inuportal.repository;
 
-import kr.inuappcenterportal.inuportal.domain.Folder;
-import kr.inuappcenterportal.inuportal.domain.FolderPost;
-import kr.inuappcenterportal.inuportal.domain.Post;
+import kr.inuappcenterportal.inuportal.domain.folder.Folder;
+import kr.inuappcenterportal.inuportal.domain.folderPost.FolderPost;
+import kr.inuappcenterportal.inuportal.domain.post.Post;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
