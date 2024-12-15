@@ -1,9 +1,9 @@
-package kr.inuappcenterportal.inuportal.exception;
+package kr.inuappcenterportal.inuportal.global.exception;
 
 
 import jakarta.validation.ConstraintViolationException;
 import kr.inuappcenterportal.inuportal.dto.ResponseDto;
-import kr.inuappcenterportal.inuportal.exception.ex.MyException;
+import kr.inuappcenterportal.inuportal.global.exception.ex.MyException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

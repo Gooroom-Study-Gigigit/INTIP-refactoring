@@ -1,4 +1,4 @@
-package kr.inuappcenterportal.inuportal.config;
+package kr.inuappcenterportal.inuportal.global.config;
 
 
 import io.swagger.v3.oas.models.Components;

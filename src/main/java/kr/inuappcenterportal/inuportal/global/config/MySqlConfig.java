@@ -1,4 +1,4 @@
-package kr.inuappcenterportal.inuportal.config;
+package kr.inuappcenterportal.inuportal.global.config;
 
 import com.zaxxer.hikari.HikariDataSource;
 import jakarta.persistence.EntityManagerFactory;

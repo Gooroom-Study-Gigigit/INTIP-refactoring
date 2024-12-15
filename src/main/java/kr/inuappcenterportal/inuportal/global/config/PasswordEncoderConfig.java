@@ -1,4 +1,4 @@
-package kr.inuappcenterportal.inuportal.config;
+package kr.inuappcenterportal.inuportal.global.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

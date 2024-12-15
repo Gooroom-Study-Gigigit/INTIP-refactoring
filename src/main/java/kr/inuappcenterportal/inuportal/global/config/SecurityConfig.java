@@ -1,8 +1,8 @@
-package kr.inuappcenterportal.inuportal.config;
+package kr.inuappcenterportal.inuportal.global.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.inuappcenterportal.inuportal.exception.CustomAccessDeniedHandler;
-import kr.inuappcenterportal.inuportal.exception.CustomAuthenticationEntryPoint;
+import kr.inuappcenterportal.inuportal.global.exception.CustomAccessDeniedHandler;
+import kr.inuappcenterportal.inuportal.global.exception.CustomAuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

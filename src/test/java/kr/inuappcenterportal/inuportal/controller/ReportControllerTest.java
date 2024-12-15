@@ -2,8 +2,8 @@ package kr.inuappcenterportal.inuportal.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
-import kr.inuappcenterportal.inuportal.config.SecurityConfig;
-import kr.inuappcenterportal.inuportal.config.TokenProvider;
+import kr.inuappcenterportal.inuportal.global.config.SecurityConfig;
+import kr.inuappcenterportal.inuportal.global.config.TokenProvider;
 import kr.inuappcenterportal.inuportal.domain.member.model.Member;
 import kr.inuappcenterportal.inuportal.domain.report.controller.ReportController;
 import kr.inuappcenterportal.inuportal.domain.report.model.Report;

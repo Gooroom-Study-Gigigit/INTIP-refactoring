@@ -1,4 +1,4 @@
-package kr.inuappcenterportal.inuportal.config;
+package kr.inuappcenterportal.inuportal.global.config;
 
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;

@@ -1,4 +1,4 @@
-package kr.inuappcenterportal.inuportal.exception.ex;
+package kr.inuappcenterportal.inuportal.global.exception.ex;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
