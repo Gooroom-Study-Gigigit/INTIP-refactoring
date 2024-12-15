@@ -1,9 +1,10 @@
 package kr.inuappcenterportal.inuportal.service;
 
-import kr.inuappcenterportal.inuportal.domain.member.Member;
-import kr.inuappcenterportal.inuportal.dto.PostDto;
-import kr.inuappcenterportal.inuportal.repository.CategoryRepository;
-import kr.inuappcenterportal.inuportal.repository.PostRepository;
+import kr.inuappcenterportal.inuportal.domain.member.model.Member;
+import kr.inuappcenterportal.inuportal.domain.post.service.PostService;
+import kr.inuappcenterportal.inuportal.domain.post.dto.PostDto;
+import kr.inuappcenterportal.inuportal.domain.category.repository.CategoryRepository;
+import kr.inuappcenterportal.inuportal.domain.post.repository.PostRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

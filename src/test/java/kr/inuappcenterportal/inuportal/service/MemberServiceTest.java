@@ -2,9 +2,10 @@ package kr.inuappcenterportal.inuportal.service;
 
 
 import kr.inuappcenterportal.inuportal.config.TokenProvider;
-import kr.inuappcenterportal.inuportal.domain.member.Member;
+import kr.inuappcenterportal.inuportal.domain.member.model.Member;
+import kr.inuappcenterportal.inuportal.domain.member.service.MemberService;
 import kr.inuappcenterportal.inuportal.oracleRepository.SchoolLoginRepository;
-import kr.inuappcenterportal.inuportal.repository.MemberRepository;
+import kr.inuappcenterportal.inuportal.domain.member.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

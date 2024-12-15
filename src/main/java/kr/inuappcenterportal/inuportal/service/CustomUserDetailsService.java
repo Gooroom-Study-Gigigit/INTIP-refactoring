@@ -2,7 +2,7 @@ package kr.inuappcenterportal.inuportal.service;
 
 import kr.inuappcenterportal.inuportal.exception.ex.MyErrorCode;
 import kr.inuappcenterportal.inuportal.exception.ex.MyException;
-import kr.inuappcenterportal.inuportal.repository.MemberRepository;
+import kr.inuappcenterportal.inuportal.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
