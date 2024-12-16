@@ -8,13 +8,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ReportService {
 
     private final ReportRepository reportRepository;
 
+    @Transactional
     public Long saveReport(ReportRequestDto reportRequestDto, Long postId, Long memberId){
         Report report = Report.builder()
                 .reason(reportRequestDto.getReason())
