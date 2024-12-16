@@ -1,12 +1,13 @@
-package kr.inuappcenterportal.inuportal.service;
+package kr.inuappcenterportal.inuportal.domain.weather.service;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import kr.inuappcenterportal.inuportal.dto.WeatherResponseDto;
+import kr.inuappcenterportal.inuportal.domain.weather.dto.WeatherResponseDto;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyErrorCode;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyException;
+import kr.inuappcenterportal.inuportal.global.service.RedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.inuappcenterportal.inuportal.domain.notice.dto.NoticeListResponseDto;
-import kr.inuappcenterportal.inuportal.dto.ResponseDto;
+import kr.inuappcenterportal.inuportal.global.dto.ResponseDto;
 import kr.inuappcenterportal.inuportal.domain.schedule.dto.ScheduleResponseDto;
 import kr.inuappcenterportal.inuportal.domain.schedule.service.ScheduleService;
 import lombok.RequiredArgsConstructor;

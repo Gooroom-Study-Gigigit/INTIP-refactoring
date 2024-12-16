@@ -13,7 +13,7 @@ import jakarta.validation.constraints.Min;
 import kr.inuappcenterportal.inuportal.domain.member.model.Member;
 import kr.inuappcenterportal.inuportal.domain.report.dto.ReportListResponseDto;
 import kr.inuappcenterportal.inuportal.domain.report.dto.ReportRequestDto;
-import kr.inuappcenterportal.inuportal.dto.ResponseDto;
+import kr.inuappcenterportal.inuportal.global.dto.ResponseDto;
 import kr.inuappcenterportal.inuportal.domain.report.service.ReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

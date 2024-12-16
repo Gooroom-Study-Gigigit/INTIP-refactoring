@@ -1,4 +1,4 @@
-package kr.inuappcenterportal.inuportal.dto;
+package kr.inuappcenterportal.inuportal.domain.weather.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;

@@ -1,4 +1,4 @@
-package kr.inuappcenterportal.inuportal.dto;
+package kr.inuappcenterportal.inuportal.domain.member.dto;
 
 
 import io.swagger.v3.oas.annotations.media.Schema;

@@ -1,4 +1,4 @@
-package kr.inuappcenterportal.inuportal.dto;
+package kr.inuappcenterportal.inuportal.global.dto;
 
 import lombok.Builder;
 import lombok.Getter;

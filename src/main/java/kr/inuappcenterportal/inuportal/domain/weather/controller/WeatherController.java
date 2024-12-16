@@ -1,4 +1,4 @@
-package kr.inuappcenterportal.inuportal.controller;
+package kr.inuappcenterportal.inuportal.domain.weather.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -6,9 +6,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import kr.inuappcenterportal.inuportal.dto.ResponseDto;
-import kr.inuappcenterportal.inuportal.dto.WeatherResponseDto;
-import kr.inuappcenterportal.inuportal.service.WeatherService;
+import kr.inuappcenterportal.inuportal.global.dto.ResponseDto;
+import kr.inuappcenterportal.inuportal.domain.weather.dto.WeatherResponseDto;
+import kr.inuappcenterportal.inuportal.domain.weather.service.WeatherService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

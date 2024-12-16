@@ -1,7 +1,7 @@
 package kr.inuappcenterportal.inuportal.domain.post.model;
 
 import jakarta.persistence.*;
-import kr.inuappcenterportal.inuportal.domain.BaseTimeEntity;
+import kr.inuappcenterportal.inuportal.global.model.BaseTimeEntity;
 import kr.inuappcenterportal.inuportal.domain.folderPost.model.FolderPost;
 import kr.inuappcenterportal.inuportal.domain.member.model.Member;
 import kr.inuappcenterportal.inuportal.domain.postLike.model.PostLike;

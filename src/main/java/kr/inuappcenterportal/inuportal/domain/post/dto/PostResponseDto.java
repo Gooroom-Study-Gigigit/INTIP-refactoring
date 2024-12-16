@@ -2,7 +2,7 @@ package kr.inuappcenterportal.inuportal.domain.post.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import kr.inuappcenterportal.inuportal.domain.post.model.Post;
-import kr.inuappcenterportal.inuportal.dto.ReReplyResponseDto;
+import kr.inuappcenterportal.inuportal.domain.reply.dto.ReReplyResponseDto;
 import kr.inuappcenterportal.inuportal.domain.reply.dto.ReplyResponseDto;
 import lombok.Builder;
 import lombok.Getter;

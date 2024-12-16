@@ -1,4 +1,4 @@
-package kr.inuappcenterportal.inuportal.controller;
+package kr.inuappcenterportal.inuportal.domain.post.controller;
 
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,8 +11,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import kr.inuappcenterportal.inuportal.domain.member.model.Member;
-import kr.inuappcenterportal.inuportal.dto.ListResponseDto;
-import kr.inuappcenterportal.inuportal.dto.ResponseDto;
+import kr.inuappcenterportal.inuportal.global.dto.ListResponseDto;
+import kr.inuappcenterportal.inuportal.global.dto.ResponseDto;
 import kr.inuappcenterportal.inuportal.domain.folder.service.FolderService;
 import kr.inuappcenterportal.inuportal.domain.post.service.PostService;
 import lombok.RequiredArgsConstructor;

@@ -1,7 +1,7 @@
 package kr.inuappcenterportal.inuportal.global.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.inuappcenterportal.inuportal.dto.ResponseDto;
+import kr.inuappcenterportal.inuportal.global.dto.ResponseDto;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyErrorCode;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyException;
 import lombok.extern.slf4j.Slf4j;

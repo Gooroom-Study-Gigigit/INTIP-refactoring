@@ -2,7 +2,7 @@ package kr.inuappcenterportal.inuportal.domain.report.model;
 
 
 import jakarta.persistence.*;
-import kr.inuappcenterportal.inuportal.domain.BaseTimeEntity;
+import kr.inuappcenterportal.inuportal.global.model.BaseTimeEntity;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;

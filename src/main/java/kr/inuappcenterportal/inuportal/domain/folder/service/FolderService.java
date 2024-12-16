@@ -14,7 +14,7 @@ import kr.inuappcenterportal.inuportal.domain.post.model.Post;
 import kr.inuappcenterportal.inuportal.domain.post.repository.PostRepository;
 import kr.inuappcenterportal.inuportal.domain.scrap.model.Scrap;
 import kr.inuappcenterportal.inuportal.domain.scrap.repository.ScrapRepository;
-import kr.inuappcenterportal.inuportal.dto.*;
+import kr.inuappcenterportal.inuportal.global.dto.ListResponseDto;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyErrorCode;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyException;
 import kr.inuappcenterportal.inuportal.domain.post.service.PostService;

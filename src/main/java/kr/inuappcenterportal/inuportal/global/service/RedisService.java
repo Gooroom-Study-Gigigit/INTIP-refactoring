@@ -1,4 +1,4 @@
-package kr.inuappcenterportal.inuportal.service;
+package kr.inuappcenterportal.inuportal.global.service;
 
 import jakarta.xml.bind.DatatypeConverter;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyErrorCode;
