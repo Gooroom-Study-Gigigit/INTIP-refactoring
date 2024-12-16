@@ -1,15 +1,15 @@
 package kr.inuappcenterportal.inuportal.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
-import kr.inuappcenterportal.inuportal.config.SecurityConfig;
-import kr.inuappcenterportal.inuportal.config.TokenProvider;
-import kr.inuappcenterportal.inuportal.domain.Member;
-import kr.inuappcenterportal.inuportal.domain.Report;
-import kr.inuappcenterportal.inuportal.dto.ReportListResponseDto;
-import kr.inuappcenterportal.inuportal.dto.ReportRequestDto;
-import kr.inuappcenterportal.inuportal.service.ReportService;
+import kr.inuappcenterportal.inuportal.global.config.SecurityConfig;
+import kr.inuappcenterportal.inuportal.global.config.TokenProvider;
+import kr.inuappcenterportal.inuportal.domain.member.model.Member;
+import kr.inuappcenterportal.inuportal.domain.report.controller.ReportController;
+import kr.inuappcenterportal.inuportal.domain.report.model.Report;
+import kr.inuappcenterportal.inuportal.domain.report.dto.ReportListResponseDto;
+import kr.inuappcenterportal.inuportal.domain.report.dto.ReportRequestDto;
+import kr.inuappcenterportal.inuportal.domain.report.service.ReportService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +24,6 @@ import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.lang.reflect.Field;
