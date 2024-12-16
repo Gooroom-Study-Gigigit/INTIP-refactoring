@@ -15,9 +15,4 @@ public enum MealType {
         this.value = value;
         this.intValue = intValue;
     }
-
-    public static int getSize() {
-        return MealType.values().length;
-    }
-
 }
