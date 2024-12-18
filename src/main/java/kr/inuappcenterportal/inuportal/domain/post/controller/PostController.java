@@ -15,6 +15,7 @@ import kr.inuappcenterportal.inuportal.domain.member.model.Member;
 import kr.inuappcenterportal.inuportal.domain.post.dto.PostDto;
 import kr.inuappcenterportal.inuportal.domain.post.dto.PostListResponseDto;
 import kr.inuappcenterportal.inuportal.domain.post.dto.PostResponseDto;
+import kr.inuappcenterportal.inuportal.domain.post.service.PostImageService;
 import kr.inuappcenterportal.inuportal.domain.post.service.PostService;
 import kr.inuappcenterportal.inuportal.global.dto.ListResponseDto;
 import kr.inuappcenterportal.inuportal.global.dto.ResponseDto;
@@ -45,6 +46,7 @@ import java.util.List;
 public class PostController {
     private final PostService postService;
     private final RedisService redisService;
+    private final PostImageService postImageService;
 
     @Operation(summary = "게시글 등록",description = "헤더 Auth에 발급받은 토큰을, 바디에 {title,content,category,bool 형태의 anonymous} 보내주세요. 그 이후 등록된 게시글의 id와 이미지를 보내주세요. 성공 시 작성된 게시글의 데이터베이스 아이디 값이 {data: id}으로 보내집니다.")
     @ApiResponses({
@@ -67,7 +69,7 @@ public class PostController {
     @PostMapping(value = "/{postId}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ResponseDto<Long>> saveOnlyImage(@RequestPart List<MultipartFile> images, @PathVariable Long postId, @AuthenticationPrincipal Member member) throws IOException {
         log.info("이미지만 저장 호출 id:{}",postId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ResponseDto.of(postService.saveImageLocal(member,postId,images),"이미지 등록 성공"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ResponseDto.of(postImageService.saveImageLocal(member,postId,images),"이미지 등록 성공"));
     }
 
     @Operation(summary = "게시글 수정",description = "헤더 Auth에 발급받은 토큰을, url 파라미터에 게시글의 id, 바디에 {title,content,category, bool 형태의 anonymous}을 형식으로 보내주세요. 성공 시 수정된 게시글의 데이터베이스 아이디 값이 {data: id}으로 보내집니다.")
@@ -95,7 +97,7 @@ public class PostController {
         if(images==null){
             images = new ArrayList<>();
         }
-        postService.updateImageLocal(member.getId(),postId,images);
+        postImageService.updateImageLocal(member.getId(),postId,images);
         return ResponseEntity.ok(ResponseDto.of(postId,"게시글 수정 성공"));
     }
 
@@ -168,7 +170,7 @@ public class PostController {
         log.info("게시글의 이미지 가져오기 호출 id:{}",postId);
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.IMAGE_PNG);
-        return ResponseEntity.ok().headers(httpHeaders).body(postService.getImage(postId, imageId));
+        return ResponseEntity.ok().headers(httpHeaders).body(postImageService.getImage(postId, imageId));
     }
 
     @Operation(summary = "상단부 인기 게시글 12개 가져오기",description = "기본 호출 시 모든 글에 대한 인기 게시글 12개, 파라미터로 category를 보낼 시 카테고리의 인기글 12개가 호출됩니다.")

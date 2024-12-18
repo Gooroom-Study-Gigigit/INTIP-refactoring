@@ -18,7 +18,6 @@ import kr.inuappcenterportal.inuportal.global.exception.ex.MyException;
 import kr.inuappcenterportal.inuportal.global.service.RedisService;
 import kr.inuappcenterportal.inuportal.domain.reply.service.ReplyService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,12 +25,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -46,9 +41,7 @@ public class PostService {
     private final ReplyService replyService;
     private final CategoryRepository categoryRepository;
     private final RedisService redisService;
-
-    @Value("${imagePath}")
-    private String path;
+    private final PostImageService postImageService;
 
     @Transactional
     public Long saveOnlyPost(Member member, PostDto postSaveDto) throws NoSuchAlgorithmException {
@@ -67,91 +60,37 @@ public class PostService {
         return post.getId();
     }
 
-    private void validateCategory(PostDto postSaveDto) {
-        if (!categoryRepository.existsByCategory(postSaveDto.getCategory())) {
-            throw new MyException(MyErrorCode.CATEGORY_NOT_FOUND);
-        }
+    @Transactional
+    public void updateOnlyPost(Long memberId, Long postId, PostDto postDto) {
+        Post post = findPostByIdOrThrow(postId);
+        validateCategory(postDto);
+        validateMemberAuthorization(post, memberId);
+        post.updateOnlyPost(postDto.getTitle(), postDto.getContent(), postDto.getCategory(), postDto.getAnonymous());
     }
 
     @Transactional
-    public Long saveImageLocal(Member member, Long postId, List<MultipartFile> images) throws IOException {
+    public void delete(Long memberId, Long postId) throws IOException {
         Post post = findPostByIdOrThrow(postId);
-
-        validateMemberAuthorization(post, member.getId());
-        long imageCount;
-        if (images != null) {
-            imageCount = images.size();
-            post.updateImageCount(imageCount);
-            for (int i = 1; i < imageCount + 1; i++) {
-                MultipartFile file = images.get(i - 1);
-                String fileName = postId + "-" + i;
-                Path filePath = Paths.get(path, fileName);
-                Files.write(filePath, file.getBytes());
-            }
-        }
-        return postId;
+        validateMemberAuthorization(post, memberId);
+        redisService.deleteImage(postId, post.getImageCount());
+        postImageService.deleteExistingImages(postId, post.getImageCount());
+        postRepository.delete(post);
     }
 
     private Post findPostByIdOrThrow(Long postId) {
         return postRepository.findById(postId).orElseThrow(() -> new MyException(MyErrorCode.POST_NOT_FOUND));
     }
 
+    private void validateCategory(PostDto postSaveDto) {
+        if (!categoryRepository.existsByCategory(postSaveDto.getCategory())) {
+            throw new MyException(MyErrorCode.CATEGORY_NOT_FOUND);
+        }
+    }
+
     private static void validateMemberAuthorization(Post post, Long memberId) {
         if (!post.getMember().getId().equals(memberId)) {
             throw new MyException(MyErrorCode.HAS_NOT_POST_AUTHORIZATION);
         }
-    }
-
-    public byte[] getImage(Long postId, Long imageId) throws IOException {
-        String fileName = postId + "-" + imageId;
-        Path filePath = Paths.get(path, fileName);
-        return Files.readAllBytes(filePath);
-    }
-
-    @Transactional
-    public void updateOnlyPost(Long memberId, Long postId, PostDto postDto) {
-        Post post = findPostByIdOrThrow(postId);
-        validateCategory(postDto);
-        if (!post.getMember().getId().equals(memberId)) {
-            throw new MyException(MyErrorCode.HAS_NOT_POST_AUTHORIZATION);
-        }
-        post.updateOnlyPost(postDto.getTitle(), postDto.getContent(), postDto.getCategory(), postDto.getAnonymous());
-    }
-
-    @Transactional
-    public void updateImageLocal(Long memberId, Long postId, List<MultipartFile> images) throws IOException {
-        Post post = findPostByIdOrThrow(postId);
-        if (!post.getMember().getId().equals(memberId)) {
-            throw new MyException(MyErrorCode.HAS_NOT_POST_AUTHORIZATION);
-        }
-        if (images != null) {
-            for (int i = 1; i < post.getImageCount(); i++) {
-                String fileName = postId + "-" + i;
-                Path filePath = Paths.get(path, fileName);
-                Files.deleteIfExists(filePath);
-            }
-            for (int i = 1; i < images.size() + 1; i++) {
-                MultipartFile file = images.get(i - 1);
-                String fileName = postId + "-" + i;
-                Path filePath = Paths.get(path, fileName);
-                Files.write(filePath, file.getBytes());
-            }
-            post.updateImageCount(images.size());
-        }
-    }
-
-    @Transactional
-    public void delete(Long memberId, Long postId) throws IOException {
-        Post post = findPostByIdOrThrow(postId);
-
-        validateMemberAuthorization(post, memberId);
-        redisService.deleteImage(postId, post.getImageCount());
-        for (int i = 1; i < post.getImageCount() + 1; i++) {
-            String fileName = postId + "-" + i;
-            Path filePath = Paths.get(path, fileName);
-            Files.deleteIfExists(filePath);
-        }
-        postRepository.delete(post);
     }
 
     @Transactional
@@ -191,7 +130,6 @@ public class PostService {
         return PostResponseDto.of(post, writer, fireId, isLiked, isScraped, hasAuthority,
                 replyService.getReplies(postId, member), replyService.getBestReplies(postId, member));
     }
-
 
     @Transactional(readOnly = true)
     public ListResponseDto getAllPost(String category, String sort, int page) {
