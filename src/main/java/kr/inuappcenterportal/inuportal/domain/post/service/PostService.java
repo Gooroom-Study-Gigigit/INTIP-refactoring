@@ -46,7 +46,7 @@ public class PostService {
 
     @Transactional
     public Long saveOnlyPost(Member member, PostDto postSaveDto) throws NoSuchAlgorithmException {
-        validateCategory(postSaveDto);
+        validateCategory(postSaveDto.getCategory());
         String hash = postSaveDto.getTitle() + postSaveDto.getContent();
         redisService.blockRepeat(hash);
         Post post = Post.builder()
@@ -64,7 +64,7 @@ public class PostService {
     @Transactional
     public void updateOnlyPost(Long memberId, Long postId, PostDto postDto) {
         Post post = postCommonService.findPostByIdOrThrow(postId);
-        validateCategory(postDto);
+        validateCategory(postDto.getCategory());
         postCommonService.validateMemberAuthorization(post, memberId);
         post.updateOnlyPost(postDto.getTitle(), postDto.getContent(), postDto.getCategory(), postDto.getAnonymous());
     }
@@ -78,8 +78,8 @@ public class PostService {
         postRepository.delete(post);
     }
 
-    private void validateCategory(PostDto postSaveDto) {
-        if (!categoryRepository.existsByCategory(postSaveDto.getCategory())) {
+    private void validateCategory(String category) {
+        if (!categoryRepository.existsByCategory(category)) {
             throw new MyException(MyErrorCode.CATEGORY_NOT_FOUND);
         }
     }
@@ -129,9 +129,7 @@ public class PostService {
         if (category == null) {
             dto = postRepository.findAllBy(pageable);
         } else {
-            if (!categoryRepository.existsByCategory(category)) {
-                throw new MyException(MyErrorCode.CATEGORY_NOT_FOUND);
-            }
+            validateCategory(category);
             dto = postRepository.findAllByCategory(category, pageable);
         }
         long total = dto.getTotalElements();
