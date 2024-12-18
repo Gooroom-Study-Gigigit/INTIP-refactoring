@@ -30,11 +30,20 @@ public class Report extends BaseTimeEntity {
     private Long postId;
 
     @Builder
-    public Report (String reason, String comment, Long memberId, Long postId){
+    private Report (String reason, String comment, Long memberId, Long postId){
         this.reason = reason;
         this.comment = comment;
         this.memberId = memberId;
         this.postId = postId;
+    }
+
+    public static Report of(String reason, String comment, Long memberId, Long postId){
+        return Report.builder()
+                .reason(reason)
+                .comment(comment)
+                .postId(postId)
+                .memberId(memberId)
+                .build();
     }
 
 
