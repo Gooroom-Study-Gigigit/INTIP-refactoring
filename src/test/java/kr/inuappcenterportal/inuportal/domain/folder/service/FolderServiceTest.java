@@ -93,6 +93,34 @@ class FolderServiceTest {
         verify(folderRepository, times(1)).findById(anyLong());
     }
 
+   @Test
+   @DisplayName("존재하는 폴더 ID로 삭제 요청 시 폴더가 삭제된다")
+   void deleteFolder_Success() {
+       // given
+       given(folderRepository.findById(1L)).willReturn(Optional.of(folder));
+
+       // when: deleteFolder 메서드 호출
+       folderService.deleteFolder(1L);
+
+       // then: 폴더가 삭제되었는지 확인
+       verify(folderRepository, times(1)).delete(folder);
+   }
+
+    @Test
+    @DisplayName("존재하지 않는 폴더 ID로 삭제 요청 시 MyException이 발생한다")
+    void deleteFolder_FolderNotFound() {
+        // given: 폴더 ID로 폴더를 찾을 수 없는 경우
+        given(folderRepository.findById(anyLong())).willReturn(Optional.empty());
+
+        // when & then: MyException 발생 여부 확인
+        assertThatThrownBy(() -> folderService.deleteFolder(1L))
+                .isInstanceOf(MyException.class)
+                .hasMessageContaining(MyErrorCode.FOLDER_NOT_FOUND.getMessage());
+
+        // then: delete 메서드가 호출되지 않았음을 검증
+        verify(folderRepository, never()).delete(any(Folder.class));
+    }
+
 
 
 }
