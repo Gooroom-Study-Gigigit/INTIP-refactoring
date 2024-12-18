@@ -21,7 +21,7 @@ import java.util.Map;
 
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(basePackages = {"kr.inuappcenterportal.inuportal.domain"})
+@EnableJpaRepositories(basePackages = {"kr.inuappcenterportal.inuportal.repository"})
 public class MySqlConfig {
     @Bean(name = "dataSource")
     @Primary
