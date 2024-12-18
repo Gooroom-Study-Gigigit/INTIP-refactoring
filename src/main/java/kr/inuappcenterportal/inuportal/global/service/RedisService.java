@@ -111,6 +111,9 @@ public class RedisService {
         }
     }
 
+
+
+
     public void storeMeal(String cafeteria,int day, int num,String menu){
         String key = cafeteria+"-"+day+"-"+num;
         redisTemplate.opsForValue().set(key,menu);
