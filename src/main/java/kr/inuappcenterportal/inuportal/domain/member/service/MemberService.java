@@ -7,7 +7,7 @@ import kr.inuappcenterportal.inuportal.domain.member.dto.MemberResponseDto;
 import kr.inuappcenterportal.inuportal.domain.member.dto.MemberUpdateNicknameDto;
 import kr.inuappcenterportal.inuportal.domain.member.dto.TokenDto;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyException;
-import kr.inuappcenterportal.inuportal.global.oracleRepository.SchoolLoginRepository;
+import kr.inuappcenterportal.inuportal.domain.member.repository.SchoolLoginRepository;
 import kr.inuappcenterportal.inuportal.domain.member.repository.MemberRepository;
 import kr.inuappcenterportal.inuportal.global.service.RedisService;
 import lombok.RequiredArgsConstructor;
