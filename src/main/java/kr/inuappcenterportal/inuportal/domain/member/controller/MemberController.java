@@ -14,6 +14,7 @@ import kr.inuappcenterportal.inuportal.domain.member.dto.MemberResponseDto;
 import kr.inuappcenterportal.inuportal.domain.member.dto.MemberUpdateNicknameDto;
 import kr.inuappcenterportal.inuportal.domain.member.dto.TokenDto;
 import kr.inuappcenterportal.inuportal.domain.member.model.Member;
+import kr.inuappcenterportal.inuportal.domain.member.util.CookieUtil;
 import kr.inuappcenterportal.inuportal.domain.post.dto.PostListResponseDto;
 import kr.inuappcenterportal.inuportal.domain.reply.dto.ReplyListResponseDto;
 import kr.inuappcenterportal.inuportal.domain.member.service.MemberService;
@@ -23,11 +24,17 @@ import kr.inuappcenterportal.inuportal.global.dto.ListResponseDto;
 import kr.inuappcenterportal.inuportal.global.dto.ResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import static org.springframework.http.HttpHeaders.*;
+import static org.springframework.http.HttpStatus.*;
 
 @Slf4j
 @Tag(name="Members", description = "회원 API")
@@ -39,6 +46,10 @@ public class MemberController {
     private final MemberService memberService;
     private final PostService postService;
     private final ReplyService replyService;
+
+    private static final String BEARER_PREFIX = "Bearer ";
+    private static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
+    private static final long REFRESH_TOKEN_EXPIRATION_SECONDS = 1000L * 60 * 60 * 24;
 
     @Operation(summary = "회원 닉네임/횃불이 이미지 변경",description = "url 헤더에 Auth 토큰,바디에 {nickname,fireId(횃불이 이미지 번호)}을 json 형식으로 보내주세요.성공 시 수정된 회원의 데이터베이스 아이디 값이 {data: id}으로 보내집니다.")
     @ApiResponses({
@@ -68,13 +79,23 @@ public class MemberController {
 
     @Operation(summary = "로그인",description = "바디에 {studentId,password}을 json 형식으로 보내주세요. 토큰 유효시간은 2시간, 리프레시 토큰의 유효시간은 1일입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200",description = "로그인 성공, 토근이 발급되었습니다.",content = @Content(schema = @Schema(implementation = TokenDto.class))),
+            @ApiResponse(responseCode = "200",description = "로그인 성공, 토큰이 발급되었습니다.",content = @Content(schema = @Schema(implementation = ResponseDto.class))),
             @ApiResponse(responseCode = "401",description = "학번 또는 비밀번호가 틀립니다.",content = @Content(schema = @Schema(implementation = ResponseDto.class))),
     })
     @PostMapping("/login")
-    public ResponseEntity<ResponseDto<TokenDto>> login(@Valid @RequestBody LoginDto loginDto){
+    public ResponseEntity<ResponseDto<?>> login(@Valid @RequestBody LoginDto loginDto){
         log.info("로그인 호출");
-        return ResponseEntity.ok(ResponseDto.of(memberService.schoolLogin(loginDto),"로그인 성공, 토근이 발급되었습니다."));
+        TokenDto tokenDto = memberService.schoolLogin(loginDto);
+
+        ResponseCookie responseCookie = CookieUtil.createCookie(
+                REFRESH_TOKEN_COOKIE_NAME,
+                tokenDto.getRefreshToken(),
+                REFRESH_TOKEN_EXPIRATION_SECONDS
+        );
+        return ResponseEntity.status(OK)
+                .header(AUTHORIZATION, BEARER_PREFIX + tokenDto.getAccessToken())
+                .header(SET_COOKIE, responseCookie.toString())
+                .body(ResponseDto.of(null, "로그인 성공, 토큰이 발급되었습니다."));
     }
 
     @Operation(summary = "토큰 재발급",description = "헤더에 refresh 토큰을 보내주세요. 토큰 유효시간은 2시간, 리프레시 토큰의 유효시간은 1일입니다.")
