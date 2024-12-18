@@ -35,6 +35,8 @@ public class MySqlConfig {
 
         Map<String, String> properties = new HashMap<String, String>();
         properties.put("hibernate.hbm2ddl.auto", "update");
+        properties.put("hibernate.dialect", "org.hibernate.dialect.MySQL8Dialect");
+
 
         return builder.dataSource(dataSource).packages("kr.inuappcenterportal.inuportal.domain").persistenceUnit("primary").properties(properties).build();
     }
