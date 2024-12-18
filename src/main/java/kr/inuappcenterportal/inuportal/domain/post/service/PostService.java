@@ -42,6 +42,7 @@ public class PostService {
     private final CategoryRepository categoryRepository;
     private final RedisService redisService;
     private final PostImageService postImageService;
+    private final PostCommonService postCommonService;
 
     @Transactional
     public Long saveOnlyPost(Member member, PostDto postSaveDto) throws NoSuchAlgorithmException {
@@ -62,23 +63,19 @@ public class PostService {
 
     @Transactional
     public void updateOnlyPost(Long memberId, Long postId, PostDto postDto) {
-        Post post = findPostByIdOrThrow(postId);
+        Post post = postCommonService.findPostByIdOrThrow(postId);
         validateCategory(postDto);
-        validateMemberAuthorization(post, memberId);
+        postCommonService.validateMemberAuthorization(post, memberId);
         post.updateOnlyPost(postDto.getTitle(), postDto.getContent(), postDto.getCategory(), postDto.getAnonymous());
     }
 
     @Transactional
     public void delete(Long memberId, Long postId) throws IOException {
-        Post post = findPostByIdOrThrow(postId);
-        validateMemberAuthorization(post, memberId);
+        Post post = postCommonService.findPostByIdOrThrow(postId);
+        postCommonService.validateMemberAuthorization(post, memberId);
         redisService.deleteImage(postId, post.getImageCount());
         postImageService.deleteExistingImages(postId, post.getImageCount());
         postRepository.delete(post);
-    }
-
-    private Post findPostByIdOrThrow(Long postId) {
-        return postRepository.findById(postId).orElseThrow(() -> new MyException(MyErrorCode.POST_NOT_FOUND));
     }
 
     private void validateCategory(PostDto postSaveDto) {
@@ -87,15 +84,9 @@ public class PostService {
         }
     }
 
-    private static void validateMemberAuthorization(Post post, Long memberId) {
-        if (!post.getMember().getId().equals(memberId)) {
-            throw new MyException(MyErrorCode.HAS_NOT_POST_AUTHORIZATION);
-        }
-    }
-
     @Transactional
     public PostResponseDto getPost(Long postId, Member member, String address) {
-        Post post = findPostByIdOrThrow(postId);
+        Post post = postCommonService.findPostByIdOrThrow(postId);
         if (redisService.isFirstConnect(address, postId)) {
             redisService.insertAddress(address, postId);
             post.upViewCount();
@@ -276,7 +267,6 @@ public class PostService {
                 .collect(Collectors.toList());
         return pagingFetchJoin(page, scraps);
     }
-
 
     @Transactional(readOnly = true)
     public List<PostListResponseDto> getPostForInf(Long lastPostId, String category) {
