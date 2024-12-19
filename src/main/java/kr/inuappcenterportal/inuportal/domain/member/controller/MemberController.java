@@ -18,7 +18,7 @@ import kr.inuappcenterportal.inuportal.domain.post.dto.PostListResponseDto;
 import kr.inuappcenterportal.inuportal.domain.reply.dto.ReplyListResponseDto;
 import kr.inuappcenterportal.inuportal.domain.member.service.MemberService;
 import kr.inuappcenterportal.inuportal.domain.post.service.PostService;
-import kr.inuappcenterportal.inuportal.domain.reply.service.ReplyService;
+import kr.inuappcenterportal.inuportal.domain.reply.service.ReplyQueryService;
 import kr.inuappcenterportal.inuportal.global.dto.ListResponseDto;
 import kr.inuappcenterportal.inuportal.global.dto.ResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +38,7 @@ import java.util.List;
 public class MemberController {
     private final MemberService memberService;
     private final PostService postService;
-    private final ReplyService replyService;
+    private final ReplyQueryService replyQueryService;
 
     @Operation(summary = "회원 닉네임/횃불이 이미지 변경",description = "url 헤더에 Auth 토큰,바디에 {nickname,fireId(횃불이 이미지 번호)}을 json 형식으로 보내주세요.성공 시 수정된 회원의 데이터베이스 아이디 값이 {data: id}으로 보내집니다.")
     @ApiResponses({
@@ -153,7 +153,7 @@ public class MemberController {
     @GetMapping("/replies")
     public ResponseEntity<ResponseDto<List<ReplyListResponseDto>>> getAllReply(@AuthenticationPrincipal Member member, @RequestParam(required = false,defaultValue = "date") String sort){
         log.info("회원이 작성한 모든 댓글 호출 id:{}",member.getId());
-        return ResponseEntity.ok(ResponseDto.of(replyService.getReplyByMember(member,sort),"회원이 작성한 모든 댓글 가져오기 성공"));
+        return ResponseEntity.ok(ResponseDto.of(replyQueryService.getReplyByMember(member,sort),"회원이 작성한 모든 댓글 가져오기 성공"));
     }
 
 

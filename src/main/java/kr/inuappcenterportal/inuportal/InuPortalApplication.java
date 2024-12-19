@@ -16,7 +16,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @OpenAPIDefinition(
         servers = {
-                @Server(url = "https://portal.inuappcenter.kr/", description = "Server URL"),
                 @Server(url = "http://localhost:8080",description = "Local URL")
         },
         security = {
