@@ -1,5 +1,14 @@
 package kr.inuappcenterportal.inuportal.domain.cafeteria.service;
 
+import static kr.inuappcenterportal.inuportal.domain.cafeteria.model.MealType.BREAKFAST;
+import static kr.inuappcenterportal.inuportal.domain.cafeteria.model.MealType.DINNER;
+import static kr.inuappcenterportal.inuportal.domain.cafeteria.model.MealType.LUNCH;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import kr.inuappcenterportal.inuportal.domain.cafeteria.model.Day;
+import kr.inuappcenterportal.inuportal.domain.cafeteria.model.MealType;
 import kr.inuappcenterportal.inuportal.global.service.RedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,15 +20,13 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class CafeteriaService {
+    private static final String BREAK_INFO_MESSAGE = "오늘은 쉽니다";
+    private static final String MENU_NON_EXIST_SIGN = "-";
+
     private final RedisService redisService;
     private final String url = "https://www.inu.ac.kr/inu/643/subview.do";
     @Value("${installPath}")
@@ -38,20 +45,20 @@ public class CafeteriaService {
     }*/
 
 
-
-    public List<String> getCafeteria(String cafeteria,int day){
-        if(day==0){
+    public List<String> getCafeteria(String cafeteria, int day) {
+        if (Day.findBySign(day) == null) {
             LocalDate today = LocalDate.now();
-            DayOfWeek dayOfWeek = today.getDayOfWeek();
-            day = dayOfWeek.getValue();
+            day = today.getDayOfWeek().getValue();
         }
+
         List<String> menu = new ArrayList<>();
-        for(int i = 1 ; i<4;i++){
-            menu.add(redisService.getMeal(cafeteria,day,i));
+
+        List<MealType> mealTypes = List.of(BREAKFAST, LUNCH, DINNER);
+        for (MealType mealType : mealTypes) {
+            menu.add(redisService.getMeal(cafeteria, day, mealType.getIntValue()));
         }
         return menu;
     }
-
 
     public void crawlCafeteria() throws InterruptedException {
         System.setProperty("webdriver.chrome.driver", installPath);
@@ -66,7 +73,8 @@ public class CafeteriaService {
             webDriver.get(url);
             Thread.sleep(1500);
 
-            WebElement linkElement = webDriver.findElement(By.xpath("//*[@id=\"menu643_obj4031\"]/div[2]/form/div[2]/div/a[2]"));
+            WebElement linkElement = webDriver.findElement(
+                    By.xpath("//*[@id=\"menu643_obj4031\"]/div[2]/form/div[2]/div/a[2]"));
             linkElement.click();
             Thread.sleep(1500);
             storeStudentCafeteria(webDriver.findElements(By.className("wrap-week")));
@@ -102,116 +110,134 @@ public class CafeteriaService {
     }
 
 
-    public void storeStudentCafeteria(List<WebElement> wrapWeekDivs){
-        int day = 1 ;
+    public void storeStudentCafeteria(List<WebElement> wrapWeekDivs) {
+        int day = 1;
         for (WebElement wrapWeekDiv : wrapWeekDivs) {
             WebElement tbody = wrapWeekDiv.findElement(By.tagName("tbody"));
             List<WebElement> rows = tbody.findElements(By.tagName("tr"));
-            for (int i = 1; i < 4; i++) {
-                List<WebElement> foods = rows.get(i).findElements(By.tagName("td"));
-                if(i==2){
-                    String menu = foods.get(0).getText().equals("")?"오늘은 쉽니다":foods.get(0).getText();
-                    menu = menu.replace("\\", "");
-                    menu = menu.replace("\"", "");
-                    redisService.storeMeal("학생식당", day, i,menu);
-                }
-                else if(i==3){
-                    String menu = foods.get(0).getText();
-                    if(menu.equals("")){
-                        menu = "오늘은 쉽니다";
-                    }
-                    menu = menu.replace("\"", "");
-                    redisService.storeMeal("학생식당", day, i,menu);
-                }
-                else {
-                    redisService.storeMeal("학생식당", day, i, foods.get(0).getText().equals("")?"오늘은 쉽니다":foods.get(0).getText());
-                }
+
+            List<MealType> mealTypesToStore = List.of(BREAKFAST, LUNCH, DINNER);
+            for (MealType mealType : mealTypesToStore) {
+                redisService.storeMeal("학생식당", day, mealType.getIntValue(), getMenu(mealType, rows));
             }
             day++;
         }
     }
 
-    public void storeDormitoryCafeteria(List<WebElement> wrapWeekDivs){
-        int day = 1 ;
+    private String getMenu(MealType mealType, List<WebElement> rows) {
+        List<WebElement> foods = rows.get(mealType.getIntValue()).findElements(By.tagName("td"));
+        if (mealType.equals(LUNCH)) {
+            return getMenuText(foods.get(0).getText()).replace("\\", "").replace("\"", "").trim();
+        }
+        if (mealType.equals(DINNER)) {
+            return getMenuText(foods.get(0).getText()).replace("\"", "");
+        }
+        return getMenuText(foods.get(0).getText());
+    }
+
+    private String getMenuText(String menu) {
+        if (menu.isEmpty()) {
+            return BREAK_INFO_MESSAGE;
+        }
+        return menu;
+    }
+
+    public void storeDormitoryCafeteria(List<WebElement> wrapWeekDivs) {
+        int day = 1;
         for (WebElement wrapWeekDiv : wrapWeekDivs) {
             WebElement tbody = wrapWeekDiv.findElement(By.tagName("tbody"));
             List<WebElement> rows = tbody.findElements(By.tagName("tr"));
 
-            for(int i = 0 ; i < 3 ; i++){
+            List<MealType> mealTypesToStore = List.of(BREAKFAST, LUNCH, DINNER);
+            for (int i = 0; i < mealTypesToStore.size(); i++) {
                 List<WebElement> foods = rows.get(i).findElements(By.tagName("td"));
-                String menu = foods.get(0).getText();
-                int index = menu.indexOf("*");
-                if(index!=-1){
-                    index++;
-                    menu = menu.substring(index);
-                    index = menu.indexOf("*");
-                    index = index+2;
-                    menu = menu.substring(index);
-                }
-                redisService.storeMeal("제1기숙사식당", day,i+1,menu);
+                String menu = getMenuOfDormitoryCafeteria(foods.get(0).getText());
+                redisService.storeMeal("제1기숙사식당", day, mealTypesToStore.get(i).getIntValue(), menu);
             }
             day++;
         }
     }
 
-    public void storeEmployeeCafeteria(List<WebElement> wrapWeekDivs){
-        int day = 1 ;
+    private String getMenuOfDormitoryCafeteria(String menu) {
+        while (menu.contains("*")) {
+            int start = menu.indexOf("*");
+            int end = menu.indexOf("*", start + 1);
+            if (end == -1) {
+                break;
+            }
+            menu = menu.substring(0, start) + menu.substring(end + 1);
+        }
+        return menu.trim();
+    }
+
+    public void storeEmployeeCafeteria(List<WebElement> wrapWeekDivs) {
+        int day = 1;
         for (WebElement wrapWeekDiv : wrapWeekDivs) {
             WebElement tbody = wrapWeekDiv.findElement(By.tagName("tbody"));
             List<WebElement> rows = tbody.findElements(By.tagName("tr"));
-            redisService.storeMeal("2호관(교직원)식당", day, 1,"-");
-            for(int i = 0 ; i < 2; i++){
+            redisService.storeMeal("2호관(교직원)식당", day, 1, MENU_NON_EXIST_SIGN);
+
+            List<MealType> mealTypesToStore = List.of(LUNCH, DINNER);
+            for (int i = 0; i < mealTypesToStore.size(); i++) {
                 List<WebElement> foods = rows.get(i).findElements(By.tagName("td"));
-                String menu = foods.get(0).getText();
-                int index =  menu.indexOf('-');
-                if(index!=-1){
-                    menu = menu.substring(0,index);
-                }
-                redisService.storeMeal("2호관(교직원)식당", day,i+2, menu);
+                String menu = getMenuOfEmployeeCafeteria(foods.get(0).getText());
+                redisService.storeMeal("2호관(교직원)식당", day, mealTypesToStore.get(i).getIntValue(), menu);
             }
             day++;
         }
     }
 
+    private String getMenuOfEmployeeCafeteria(String menu) {
+        if (menu.contains("-")) {
+            return menu.substring(0, menu.indexOf("-"));
+        }
+        return menu;
+    }
 
-    public void store27Cafeteria(List<WebElement> wrapWeekDivs){
-        int day = 1 ;
+
+    public void store27Cafeteria(List<WebElement> wrapWeekDivs) {
+        int day = 1;
         for (WebElement wrapWeekDiv : wrapWeekDivs) {
             WebElement tbody = wrapWeekDiv.findElement(By.tagName("tbody"));
             List<WebElement> rows = tbody.findElements(By.tagName("tr"));
 
-            for(int i = 0 ; i < 3 ; i++){
+            List<MealType> mealTypesToStore = List.of(BREAKFAST, LUNCH, DINNER);
+            for (int i = 0; i < mealTypesToStore.size(); i++) {
                 List<WebElement> foods = rows.get(i).findElements(By.tagName("td"));
-                redisService.storeMeal("27호관식당", day,i+1, foods.get(0).getText());
+                redisService.storeMeal("27호관식당", day, mealTypesToStore.get(i).getIntValue(), foods.get(0).getText());
             }
             day++;
         }
     }
 
-    public void storeTeacherCafeteria(List<WebElement> wrapWeekDivs){
-        int day = 1 ;
+    public void storeTeacherCafeteria(List<WebElement> wrapWeekDivs) {
+        int day = 1;
         for (WebElement wrapWeekDiv : wrapWeekDivs) {
             WebElement tbody = wrapWeekDiv.findElement(By.tagName("tbody"));
             List<WebElement> rows = tbody.findElements(By.tagName("tr"));
-            redisService.storeMeal("사범대식당", day, 1,"-");
-            for(int i = 0 ; i < 2 ; i++){
+            redisService.storeMeal("사범대식당", day, MealType.BREAKFAST.getIntValue(), MENU_NON_EXIST_SIGN);
+
+            List<MealType> mealTypesToStore = List.of(LUNCH, DINNER);
+            for (int i = 0; i < mealTypesToStore.size(); i++) {
                 List<WebElement> foods = rows.get(i).findElements(By.tagName("td"));
-                String menu = foods.get(0).getText();
-                if(menu.equals("")){
-                    menu="오늘은 쉽니다";
-                }
-                else {
-                    int index = menu.indexOf('-');
-                    if (index != -1) {
-                        menu = menu.substring(0, index);
-                    }
-                }
-                redisService.storeMeal("사범대식당", day,i+2, menu);
+                String menu = getMenuOfTeacherCafeteria(foods.get(0).getText());
+                redisService.storeMeal("사범대식당", day, mealTypesToStore.get(i).getIntValue(), menu);
             }
             day++;
         }
     }
 
+    private String getMenuOfTeacherCafeteria(String menu) {
+        if (menu.isEmpty()) {
+            return BREAK_INFO_MESSAGE;
+        }
+
+        if (menu.contains("-")) {
+            return menu.substring(0, menu.indexOf("-"));
+        }
+
+        return menu;
+    }
 
 
 }
