@@ -180,7 +180,7 @@ class FolderServiceTest {
         verify(folderPostRepository, times(1)).save(any(FolderPost.class));
     }
     @Test
-    @DisplayName("폴더에 게시물 추가 실패 - 존재하지 않는 폴더로 인해 추가할 수 없습니다.")
+    @DisplayName("폴더에 게시물 추가 실패 - 요청한 폴더 ID가 존재하지 않아 예외가 발생합니다.")
     void insertInFolder_FolderNotFound() {
         // given
         FolderPostDto folderPostDto = new FolderPostDto(List.of(1L));
@@ -193,7 +193,7 @@ class FolderServiceTest {
     }
 
     @Test
-    @DisplayName("폴더에 게시물 추가 실패 - 폴더에 추가하려는 게시물을 찾을 수 없습니다.")
+    @DisplayName("폴더에 게시물 추가 실패 - 요청한 게시물 ID가 존재하지 않아 예외가 발생합니다.")
     void insertInFolder_PostNotFound() {
         // given
         FolderPostDto folderPostDto = new FolderPostDto(List.of(1L));
@@ -208,7 +208,7 @@ class FolderServiceTest {
     }
 
     @Test
-    @DisplayName("폴더에 게시물 추가 실패 - 이미 폴더에 존재하는 중복된 게시물입니다.")
+    @DisplayName("폴더에 게시물 추가 실패 - 이미 폴더에 존재하는 게시물을 추가하려고 시도해 예외가 발생합니다.")
     void insertInFolder_DuplicatePost() {
         // given
         FolderPostDto folderPostDto = new FolderPostDto(List.of(1L));
@@ -223,5 +223,32 @@ class FolderServiceTest {
                 .isInstanceOf(MyException.class)
                 .hasMessageContaining(MyErrorCode.POST_DUPLICATE_FOLDER.getMessage());
     }
-    
+
+    //deleteInFolder 테스트
+    // ----
+
+    @Test
+    @DisplayName("폴더 조회 성공 - 특정 사용자가 소유한 모든 폴더를 정상적으로 반환합니다.")
+    void getFolder_Success() {
+        // given
+        Member member = new Member("20241001", "member1", List.of("ROLE_USER"));
+        Folder folder1 = Folder.builder().name("Folder 1").member(member).build();
+        Folder folder2 = Folder.builder().name("Folder 2").member(member).build();
+        ReflectionTestUtils.setField(folder1, "id", 1L);
+        ReflectionTestUtils.setField(folder2, "id", 2L);
+
+        List<Folder> folders = List.of(folder1, folder2);
+
+        // given
+        given(folderRepository.findAllByMember(member)).willReturn(folders);
+
+        // when
+        List<FolderResponseDto> folderResponseDtos = folderService.getFolder(member);
+
+        // then
+        assertThat(folderResponseDtos.get(0).getName()).isEqualTo("Folder 1");
+        assertThat(folderResponseDtos.get(1).getName()).isEqualTo("Folder 2");
+        verify(folderRepository, times(1)).findAllByMember(member);
+    }
+
 }
