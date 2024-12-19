@@ -30,10 +30,6 @@ public class MemberService {
     private final TokenProvider tokenProvider;
     private final RedisService redisService;
 
-    private static final String REDIS_PREFIX_REFRESH = "RT:";
-
-    private static final long ACCESS_TOKEN_EXPIRATION_SECONDS = 1000L * 60 * 60 * 2 ;//2시간
-    private static final long REFRESH_TOKEN_EXPIRATION_SECONDS = 1000L * 60 * 60 * 24;
 
     @Transactional
     public void createMember(String studentId){
@@ -44,30 +40,36 @@ public class MemberService {
     private TokenDto createTokens(Member member) {
         String subject = member.getId().toString();
 
-        String accessToken = tokenProvider.createAccessToken(subject, member.getRoles(), ACCESS_TOKEN_EXPIRATION_SECONDS);
-        String refreshToken = tokenProvider.createRefreshToken(subject, REFRESH_TOKEN_EXPIRATION_SECONDS);
+        String accessToken = tokenProvider.createAccessToken(subject, member.getRoles(), TokenProvider.ACCESS_TOKEN_EXPIRATION_SECONDS);
+        String refreshToken = tokenProvider.createRefreshToken(subject, TokenProvider.REFRESH_TOKEN_EXPIRATION_SECONDS);
 
-        redisService.saveRefreshToken(REDIS_PREFIX_REFRESH + subject, refreshToken, REFRESH_TOKEN_EXPIRATION_SECONDS);
+        redisService.saveRefreshToken(TokenProvider.REDIS_PREFIX_REFRESH + subject, refreshToken, TokenProvider.REFRESH_TOKEN_EXPIRATION_SECONDS);
 
         return TokenDto.of(accessToken, refreshToken);
     }
 
-    @Transactional
     public TokenDto schoolLogin(LoginDto loginDto){
         if (!memberRepository.existsByStudentId(loginDto.getStudentId())) {
             createMember(loginDto.getStudentId());
         }
-        return createTokens(memberRepository.findByStudentId(loginDto.getStudentId())
-                .orElseThrow(() -> new MyException(USER_NOT_FOUND)));
+        Member member = memberRepository.findByStudentId(loginDto.getStudentId())
+                .orElseThrow(() -> new MyException(USER_NOT_FOUND));
+        return createTokens(member);
     }
 
-    public TokenDto refreshToken(String token){
-        if(!tokenProvider.validateRefreshToken(token)){
-            throw new MyException(EXPIRED_TOKEN);
+    public TokenDto reissueTokens(String refreshToken){
+        if(!tokenProvider.validateRefreshToken(refreshToken)){
+            return null;
         }
-        Long id = Long.valueOf(tokenProvider.getUsernameByRefresh(token));
-        Member member = memberRepository.findById(id).orElseThrow(()->new MyException(USER_NOT_FOUND));
-        return createTokens(member);
+        String subject = tokenProvider.getUsernameByRefresh(refreshToken);
+        String storedRefreshToken = redisService.getRefreshToken(TokenProvider.REDIS_PREFIX_REFRESH + subject);
+
+        if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {
+            return null;
+        }
+        redisService.deleteRefreshToken(TokenProvider.REDIS_PREFIX_REFRESH + subject);
+        return createTokens(memberRepository.findById(Long.valueOf(subject))
+                .orElseThrow(() -> new MyException(USER_NOT_FOUND)));
     }
 
     @Transactional

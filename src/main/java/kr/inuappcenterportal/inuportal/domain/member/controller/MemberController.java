@@ -20,12 +20,12 @@ import kr.inuappcenterportal.inuportal.domain.reply.dto.ReplyListResponseDto;
 import kr.inuappcenterportal.inuportal.domain.member.service.MemberService;
 import kr.inuappcenterportal.inuportal.domain.post.service.PostService;
 import kr.inuappcenterportal.inuportal.domain.reply.service.ReplyService;
+import kr.inuappcenterportal.inuportal.global.config.TokenProvider;
 import kr.inuappcenterportal.inuportal.global.dto.ListResponseDto;
 import kr.inuappcenterportal.inuportal.global.dto.ResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
+
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -46,10 +46,6 @@ public class MemberController {
     private final MemberService memberService;
     private final PostService postService;
     private final ReplyService replyService;
-
-    private static final String BEARER_PREFIX = "Bearer ";
-    private static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
-    private static final long REFRESH_TOKEN_EXPIRATION_SECONDS = 1000L * 60 * 60 * 24;
 
     @Operation(summary = "회원 닉네임/횃불이 이미지 변경",description = "url 헤더에 Auth 토큰,바디에 {nickname,fireId(횃불이 이미지 번호)}을 json 형식으로 보내주세요.성공 시 수정된 회원의 데이터베이스 아이디 값이 {data: id}으로 보내집니다.")
     @ApiResponses({
@@ -88,25 +84,42 @@ public class MemberController {
         TokenDto tokenDto = memberService.schoolLogin(loginDto);
 
         ResponseCookie responseCookie = CookieUtil.createCookie(
-                REFRESH_TOKEN_COOKIE_NAME,
+                TokenProvider.REFRESH_TOKEN_COOKIE_NAME,
                 tokenDto.getRefreshToken(),
-                REFRESH_TOKEN_EXPIRATION_SECONDS
+                TokenProvider.REFRESH_TOKEN_EXPIRATION_SECONDS
         );
         return ResponseEntity.status(OK)
-                .header(AUTHORIZATION, BEARER_PREFIX + tokenDto.getAccessToken())
+                .header(AUTHORIZATION, TokenProvider.BEARER_PREFIX + tokenDto.getAccessToken())
                 .header(SET_COOKIE, responseCookie.toString())
                 .body(ResponseDto.of(null, "로그인 성공, 토큰이 발급되었습니다."));
     }
 
-    @Operation(summary = "토큰 재발급",description = "헤더에 refresh 토큰을 보내주세요. 토큰 유효시간은 2시간, 리프레시 토큰의 유효시간은 1일입니다.")
+    @Operation(summary = "토큰 재발급",description = "쿠키에 refresh 토큰을 보내주세요. 토큰 유효시간은 2시간, 리프레시 토큰의 유효시간은 1일입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200",description = "토큰 재발급 성공",content = @Content(schema = @Schema(implementation = TokenDto.class)))
+            @ApiResponse(responseCode = "200",description = "토큰 재발급 성공",content = @Content(schema = @Schema(implementation = ResponseDto.class)))
             ,@ApiResponse(responseCode = "401",description = "만료된 토큰입니다.",content = @Content(schema = @Schema(implementation = ResponseDto.class)))
     })
     @PostMapping("/refresh")
     public ResponseEntity<ResponseDto<TokenDto>> refresh(HttpServletRequest httpServletRequest){
         log.info("토큰 재발급 호출");
-        return ResponseEntity.ok(ResponseDto.of(memberService.refreshToken(httpServletRequest.getHeader("refresh")),"토큰 재발급 성공"));
+        String refreshToken = CookieUtil.findCookieByName(httpServletRequest, TokenProvider.REFRESH_TOKEN_COOKIE_NAME).getValue();
+        TokenDto reissueTokenDto = memberService.reissueTokens(refreshToken);
+
+        ResponseCookie responseCookie = CookieUtil.createCookie(
+                TokenProvider.REFRESH_TOKEN_COOKIE_NAME,
+                reissueTokenDto != null ? reissueTokenDto.getRefreshToken() : null,
+                TokenProvider.REFRESH_TOKEN_EXPIRATION_SECONDS
+        );
+        if (reissueTokenDto != null) {
+            return ResponseEntity.status(OK)
+                    .header(AUTHORIZATION, TokenProvider.BEARER_PREFIX + reissueTokenDto.getAccessToken())
+                    .header(SET_COOKIE, responseCookie.toString())
+                    .body(ResponseDto.of(null, "토큰 재발급 성공"));
+        } else {
+            return ResponseEntity.status(UNAUTHORIZED)
+                    .header(SET_COOKIE, responseCookie.toString())
+                    .body(ResponseDto.of(null, "토큰 재발급 실패, 다시 로그인 해주세요"));
+        }
     }
 
     @Operation(summary = "회원 가져오기",description = "url 헤더에 Auth 토큰을 담아 보내주세요")
