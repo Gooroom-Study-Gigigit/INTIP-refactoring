@@ -1,18 +1,15 @@
 package kr.inuappcenterportal.inuportal.domain.reply.model;
 
 import jakarta.persistence.*;
-import kr.inuappcenterportal.inuportal.global.model.BaseTimeEntity;
 import kr.inuappcenterportal.inuportal.domain.member.model.Member;
 import kr.inuappcenterportal.inuportal.domain.post.model.Post;
-import kr.inuappcenterportal.inuportal.domain.replylike.model.ReplyLike;
+import kr.inuappcenterportal.inuportal.global.model.BaseTimeEntity;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-
-import java.util.List;
 
 @Entity
 @Getter
@@ -35,6 +32,9 @@ public class Reply extends BaseTimeEntity {
     @Column
     private Long number;
 
+    @Column
+    private Long likeCount;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name ="post_id")
     private Post post;
@@ -44,8 +44,6 @@ public class Reply extends BaseTimeEntity {
     @OnDelete(action = OnDeleteAction.SET_NULL)
     private Member member;
 
-    @OneToMany(mappedBy = "reply",fetch = FetchType.LAZY,cascade = CascadeType.ALL)
-    private List<ReplyLike> likeReplies;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_reply_id")
@@ -61,6 +59,7 @@ public class Reply extends BaseTimeEntity {
         this.reply =reply;
         this.isDeleted = false;
         this.number = number;
+        this.likeCount = 0L;
     }
 
     public void update(String content, boolean anonymous){
@@ -68,9 +67,14 @@ public class Reply extends BaseTimeEntity {
         this.anonymous =anonymous;
     }
 
-    public void onDelete(String content, Member member){
-        this.content =content;
-        this.member = member;
+    public void onDelete(){
         this.isDeleted = true;
+    }
+    public void upLike(){
+        this.likeCount += 1;
+    }
+
+    public void downLike(){
+        this.likeCount += 1;
     }
 }

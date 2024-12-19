@@ -36,7 +36,7 @@ public class ReplyListResponseDto {
         this.title = reply.getPost().getTitle();
         this.replyCount = reply.getPost().getReplyCount();
         this.content = reply.getContent();
-        this.like = (long)reply.getLikeReplies().size();
+        this.like = reply.getLikeCount();
         this.postId = reply.getPost().getId();
         this.createDate = reply.getCreateDate().format(DateTimeFormatter.ofPattern("yyyy.MM.dd"));
         this.modifiedDate = reply.getModifiedDate().format(DateTimeFormatter.ofPattern("yyyy.MM.dd"));

@@ -19,7 +19,7 @@ import kr.inuappcenterportal.inuportal.domain.post.dto.PostListResponseDto;
 import kr.inuappcenterportal.inuportal.domain.reply.dto.ReplyListResponseDto;
 import kr.inuappcenterportal.inuportal.domain.member.service.MemberService;
 import kr.inuappcenterportal.inuportal.domain.post.service.PostService;
-import kr.inuappcenterportal.inuportal.domain.reply.service.ReplyService;
+import kr.inuappcenterportal.inuportal.domain.reply.service.ReplyQueryService;
 import kr.inuappcenterportal.inuportal.global.dto.ListResponseDto;
 import kr.inuappcenterportal.inuportal.global.dto.ResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +45,7 @@ import static org.springframework.http.HttpStatus.*;
 public class MemberController {
     private final MemberService memberService;
     private final PostService postService;
-    private final ReplyService replyService;
+    private final ReplyQueryService replyQueryService;
 
     private static final String BEARER_PREFIX = "Bearer ";
     private static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
@@ -174,7 +174,7 @@ public class MemberController {
     @GetMapping("/replies")
     public ResponseEntity<ResponseDto<List<ReplyListResponseDto>>> getAllReply(@AuthenticationPrincipal Member member, @RequestParam(required = false,defaultValue = "date") String sort){
         log.info("회원이 작성한 모든 댓글 호출 id:{}",member.getId());
-        return ResponseEntity.ok(ResponseDto.of(replyService.getReplyByMember(member,sort),"회원이 작성한 모든 댓글 가져오기 성공"));
+        return ResponseEntity.ok(ResponseDto.of(replyQueryService.getReplyByMember(member,sort),"회원이 작성한 모든 댓글 가져오기 성공"));
     }
 
 

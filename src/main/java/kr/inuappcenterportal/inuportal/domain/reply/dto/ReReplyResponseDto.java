@@ -54,7 +54,7 @@ public class ReReplyResponseDto {
                 .writer(writer)
                 .fireId(fireId)
                 .content(reReply.getContent())
-                .like(reReply.getLikeReplies().size())
+                .like(reReply.getLikeCount())
                 .createDate(reReply.getCreateDate().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")))
                 .modifiedDate(reReply.getModifiedDate().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")))
                 .isLiked(isLiked)
@@ -62,9 +62,4 @@ public class ReReplyResponseDto {
                 .isAnonymous(reReply.getAnonymous())
                 .build();
     }
-
-
-
-
-
 }

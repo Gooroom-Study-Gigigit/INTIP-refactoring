@@ -14,7 +14,6 @@ import kr.inuappcenterportal.inuportal.global.exception.ex.MyErrorCode;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyException;
 import kr.inuappcenterportal.inuportal.domain.member.service.MemberService;
 import kr.inuappcenterportal.inuportal.domain.post.service.PostService;
-import kr.inuappcenterportal.inuportal.domain.reply.service.ReplyService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,8 +55,7 @@ public class MemberControllerTest {
 
     @MockBean
     MemberService memberService;
-    @MockBean
-    ReplyService replyService;
+
     @MockBean
     PostService postService;
 
