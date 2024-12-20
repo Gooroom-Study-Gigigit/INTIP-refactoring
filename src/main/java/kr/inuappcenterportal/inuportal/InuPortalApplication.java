@@ -19,21 +19,15 @@ import org.springframework.scheduling.annotation.EnableScheduling;
                 @Server(url = "http://localhost:8080",description = "Local URL")
         },
         security = {
-                @SecurityRequirement(name = "Auth"),
-                @SecurityRequirement(name = "refresh")
+                @SecurityRequirement(name = "Authorization")
         }
 )
 @SecuritySchemes({
-        @SecurityScheme(name = "Auth",
+        @SecurityScheme(name = "Authorization",
                 type = SecuritySchemeType.APIKEY,
                 description = "JWT token",
                 in = SecuritySchemeIn.HEADER,
-                paramName = "Auth"),
-        @SecurityScheme(name = "refresh",
-                type = SecuritySchemeType.APIKEY,
-                description = "JWT refresh token",
-                in = SecuritySchemeIn.HEADER,
-                paramName = "refresh")
+                paramName = "Authorization")
 })
 @EnableJpaAuditing
 @EnableAsync

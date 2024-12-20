@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseCookie;
 
 public class CookieUtil {
+    public static final int COOKIE_EXPIRATION_DELETE = 0;
 
     public static ResponseCookie createCookie(String name, String value, long cookieExpiration) {
         return ResponseCookie.from(name, value)
