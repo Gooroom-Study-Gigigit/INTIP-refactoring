@@ -3,11 +3,9 @@ package kr.inuappcenterportal.inuportal.global.config;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
-import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyErrorCode;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,65 +16,60 @@ import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 
 @Component
 @Slf4j
-@RequiredArgsConstructor
 public class TokenProvider {
 
     private final UserDetailsService userDetailsService;
-    @Value("${jwtSecret}")
-    private String secret;
 
-    @Value("${refreshSecret}")
-    private String refreshSecret;
-    private Key secretKey;
-    private Key refreshKey;
-    private final long tokenValidMillisecond = 1000L * 60 * 60 * 2 ;//2시간
-    private final long refreshValidMillisecond = 1000L * 60 *60 *24;//24시간
+    private final Key accessTokenSigningKey;
+    private final Key refreshTokenSigningKey;
+    private static final String AUTHORITIES_KEY = "roles";
 
-    @PostConstruct
-    protected void init(){
-       log.info("키 생성 암호화 전 키 :{}",secret);
-       secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        refreshKey = Keys.hmacShaKeyFor(refreshSecret.getBytes(StandardCharsets.UTF_8));
-        log.info("키 생성 암호화 후 키 :{}",secretKey);
+    public static final String REDIS_PREFIX_REFRESH = "RT:";
+    // TODO: 변경할 토큰 시간을 고민하고 설정 파일에서 받아오도록 해야한다
+    public static final long ACCESS_TOKEN_EXPIRATION_SECONDS = 1000L * 60 * 60 * 2 ;//2시간
+    public static final long REFRESH_TOKEN_EXPIRATION_SECONDS = 1000L * 60 * 60 * 24;
+    public static final String BEARER_PREFIX = "Bearer ";
+    public static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
+
+    public TokenProvider(
+            UserDetailsService userDetailsService,
+            @Value("${jwtSecret}") String accessTokenSecret,
+            @Value("${refreshSecret}") String refreshTokenSecret) {
+        this.userDetailsService = userDetailsService;
+        this.accessTokenSigningKey = Keys.hmacShaKeyFor(accessTokenSecret.getBytes(StandardCharsets.UTF_8));
+        this.refreshTokenSigningKey = Keys.hmacShaKeyFor(refreshTokenSecret.getBytes(StandardCharsets.UTF_8));
     }
 
+    public String createAccessToken(String id, List<String> roles, long accessTokenExpirationSeconds){
 
-    public String createToken(String id, List<String> roles, LocalDateTime localDateTime){
-        log.info("토큰 생성 시작");
-        Claims claims = Jwts.claims().setSubject(id);
-        claims.put("roles",roles);
-        Date now = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
-        Date accessExpiredTime = new Date(now.getTime()+tokenValidMillisecond);
-        String accessToken = Jwts.builder()
-                .setClaims(claims)
+        Date now = new Date();
+        Date accessExpiredTime = new Date(now.getTime() + accessTokenExpirationSeconds);
+
+        return Jwts.builder()
+                .setSubject(id)
+                .claim(AUTHORITIES_KEY, roles)
                 .setIssuedAt(now)
                 .setExpiration(accessExpiredTime)
-                .signWith(secretKey,SignatureAlgorithm.HS256)
+                .signWith(accessTokenSigningKey, SignatureAlgorithm.HS256)
                 .compact();
-        log.info("토큰 생성 완료");
-        return accessToken;
     }
 
-    public String createRefreshToken(String id, LocalDateTime localDateTime){
-        log.info("refresh 토큰 생성 시작");
-        Claims claims = Jwts.claims().setSubject(id);
-        Date now = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
-        Date refreshExpiredTime = new Date(now.getTime()+refreshValidMillisecond);
-        String refreshToken = Jwts.builder()
-                .setClaims(claims)
+    public String createRefreshToken(String id, long refreshTokenExpirationSeconds){
+
+        Date now = new Date();
+        Date refreshExpiredTime = new Date(now.getTime() + refreshTokenExpirationSeconds);
+
+        return Jwts.builder()
+                .setSubject(id)
                 .setIssuedAt(now)
                 .setExpiration(refreshExpiredTime)
-                .signWith(refreshKey,SignatureAlgorithm.HS256)
+                .signWith(refreshTokenSigningKey, SignatureAlgorithm.HS256)
                 .compact();
-        log.info("refresh 토큰 생성 완료");
-        return refreshToken;
     }
 
     public Authentication getAuthentication(String token){
@@ -89,13 +82,13 @@ public class TokenProvider {
 
     public String getUsername(String token){
             //log.info("토큰으로 회원 정보 추출");
-            String info = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody().getSubject();
+            String info = Jwts.parserBuilder().setSigningKey(accessTokenSigningKey).build().parseClaimsJws(token).getBody().getSubject();
             log.info("토큰으로 회원 정보 추출 완료 info:{}",info);
             return info;
     }
 
     public String getUsernameByRefresh(String token){
-        return Jwts.parserBuilder().setSigningKey(refreshKey).build().parseClaimsJws(token).getBody().getSubject();
+        return Jwts.parserBuilder().setSigningKey(refreshTokenSigningKey).build().parseClaimsJws(token).getBody().getSubject();
     }
     public String resolveToken(HttpServletRequest request){
         return request.getHeader("Auth");
@@ -103,12 +96,12 @@ public class TokenProvider {
 
     public boolean validateToken(String token){
         //log.info("토큰 유효성 검증 시작");
-        return valid(secretKey,token);
+        return valid(accessTokenSigningKey, token);
     }
 
     public boolean validateRefreshToken(String token){
         //log.info("리프래쉬 토큰 유효성 검증 시작");
-        return valid(refreshKey,token);
+        return valid(refreshTokenSigningKey, token);
     }
     private boolean valid(Key key, String token){
         try{
@@ -124,9 +117,4 @@ public class TokenProvider {
             throw new MyException(MyErrorCode.UNKNOWN_TOKEN_ERROR);
         }
     }
-
-
-
-
-
 }

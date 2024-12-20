@@ -28,7 +28,6 @@ public class RedisService {
     private final RedisTemplate<String,byte[]> redisTemplateForImage;
     private final RedisTemplate<String,String> redisTemplate;
 
-
     public boolean isFirstConnect(String address, Long postId){
         String key = address + "&"+ postId;
         log.info("check isFirstConnect key:{}",key);
@@ -79,7 +78,6 @@ public class RedisService {
             redisTemplateForImage.delete(key);
     }
 
-
     public byte[] findImages(Long postId, Long imageId){
         String key = postId + "-" + imageId;
         log.info("이미지가져오기 key:{}",key);
@@ -109,9 +107,6 @@ public class RedisService {
             redisTemplateForImage.delete(key);
         }
     }
-
-
-
 
     public void storeMeal(String cafeteria,int day, int num,String menu){
         String key = cafeteria+"-"+day+"-"+num;
@@ -180,6 +175,18 @@ public class RedisService {
             redisTemplate.opsForValue().set(hash,"hash");
             redisTemplate.expire(hash,20, TimeUnit.SECONDS);
         }
+    }
+
+    public void saveRefreshToken(String key, String refreshToken, long refreshTokenExpirationSeconds) {
+        redisTemplate.opsForValue().set(key, refreshToken, refreshTokenExpirationSeconds, TimeUnit.SECONDS);
+    }
+
+    public String getRefreshToken(String key) {
+        return redisTemplate.opsForValue().get(key);
+    }
+
+    public Boolean deleteRefreshToken(String key) {
+        return redisTemplate.delete(key);
     }
 
 }
