@@ -79,8 +79,6 @@ public class TokenProvider {
         return refreshToken;
     }
 
-
-
     public Authentication getAuthentication(String token){
         //log.info("토큰 인증 정보 조회 시작");
         UserDetails userDetails = userDetailsService.loadUserByUsername(this.getUsername(token));
@@ -94,7 +92,6 @@ public class TokenProvider {
             String info = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody().getSubject();
             log.info("토큰으로 회원 정보 추출 완료 info:{}",info);
             return info;
-
     }
 
     public String getUsernameByRefresh(String token){

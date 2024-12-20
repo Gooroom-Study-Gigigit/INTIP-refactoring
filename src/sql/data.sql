@@ -147,17 +147,17 @@ INSERT INTO post_like (id, member_id, post_id) VALUES
 (10, 10, 10);
 
 -- Reply 더미 데이터
-INSERT INTO reply (id, content, anonymous, is_deleted, number, post_id, member_id, parent_reply_id,  create_date, modified_date) VALUES
-(1, '댓글1', true, false, 1, 1, 1, NULL, NOW(), NOW()),
-(2, '댓글2', false, false, 2, 2, 2, NULL, NOW(), NOW()),
-(3, '댓글3', true, false, 3, 3, 3, NULL, NOW(), NOW()),
-(4, '댓글4', false, false, 4, 4, 4, NULL, NOW(), NOW()),
-(5, '댓글5', true, false, 5, 5, 5, NULL, NOW(), NOW()),
-(6, '댓글6', false, false, 6, 6, 6, NULL, NOW(), NOW()),
-(7, '댓글7', true, false, 7, 7, 7, NULL, NOW(), NOW()),
-(8, '댓글8', false, false, 8, 8, 8, NULL, NOW(), NOW()),
-(9, '댓글9', true, false, 9, 9, 9, NULL, NOW(), NOW()),
-(10, '댓글10', false, false, 10, 10, 10, NULL, NOW(), NOW());
+INSERT INTO reply (id, content, anonymous, is_deleted, number, likeCount, post_id, member_id, parent_reply_id,  create_date, modified_date) VALUES
+(1, '댓글1', true, false, 1, 0, 1,1, NULL, NOW(), NOW()),
+(2, '댓글2', false, false, 2, 0, 2,2, NULL, NOW(), NOW()),
+(3, '댓글3', true, false, 3, 0, 3,3, NULL, NOW(), NOW()),
+(4, '댓글4', false, false, 4, 0, 4,4, NULL, NOW(), NOW()),
+(5, '댓글5', true, false, 5, 0, 5,5, NULL, NOW(), NOW()),
+(6, '댓글6', false, false, 6, 0, 6,6, NULL, NOW(), NOW()),
+(7, '댓글7', true, false, 7, 0, 7,7, NULL, NOW(), NOW()),
+(8, '댓글8', false, false, 8, 0, 8,8, NULL, NOW(), NOW()),
+(9, '댓글9', true, false, 9, 0, 9,9, NULL, NOW(), NOW()),
+(10, '댓글10', false, false, 10, 0, 10,10, NULL, NOW(), NOW());
 
 -- ReplyLike 더미 데이터
 INSERT INTO reply_like (id, member_id, reply_id) VALUES
