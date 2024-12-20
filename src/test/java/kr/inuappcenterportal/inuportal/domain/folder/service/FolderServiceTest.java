@@ -29,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -103,9 +104,11 @@ class FolderServiceTest {
         Long updatedFolderId = folderService.updateFolder(1L, updateDto);
 
         // then: 폴더 ID와 폴더 이름이 올바르게 업데이트되었는지 검증
-        assertThat(updatedFolderId).isEqualTo(1L);
-        assertThat(folder.getName()).isEqualTo("폴더명 수정1");
-        verify(folderRepository, times(1)).findById(anyLong());
+        assertAll(
+                () -> assertThat(updatedFolderId).isEqualTo(1L),
+                () -> assertThat(folder.getName()).isEqualTo("폴더명 수정1"),
+                () -> verify(folderRepository, times(1)).findById(anyLong())
+        );
     }
 
     @Test
