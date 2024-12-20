@@ -6,41 +6,82 @@ import kr.inuappcenterportal.inuportal.domain.member.dto.LoginDto;
 import kr.inuappcenterportal.inuportal.domain.member.dto.MemberResponseDto;
 import kr.inuappcenterportal.inuportal.domain.member.dto.MemberUpdateNicknameDto;
 import kr.inuappcenterportal.inuportal.domain.member.dto.TokenDto;
-import kr.inuappcenterportal.inuportal.global.exception.ex.MyErrorCode;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyException;
 import kr.inuappcenterportal.inuportal.domain.member.repository.SchoolLoginRepository;
 import kr.inuappcenterportal.inuportal.domain.member.repository.MemberRepository;
+import kr.inuappcenterportal.inuportal.global.service.RedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static kr.inuappcenterportal.inuportal.global.exception.ex.MyErrorCode.*;
+
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class MemberService {
     private final MemberRepository memberRepository;
-    private final TokenProvider tokenProvider;
     private final SchoolLoginRepository schoolLoginRepository;
+    private final TokenProvider tokenProvider;
+    private final RedisService redisService;
 
 
     @Transactional
+    public void createMember(String studentId){
+        Member member = Member.builder().studentId(studentId).nickname(studentId).roles(Collections.singletonList("ROLE_USER")).build();
+        memberRepository.save(member);
+    }
+
+    private TokenDto createTokens(Member member) {
+        String subject = member.getId().toString();
+
+        String accessToken = tokenProvider.createAccessToken(subject, member.getRoles(), TokenProvider.ACCESS_TOKEN_EXPIRATION_SECONDS);
+        String refreshToken = tokenProvider.createRefreshToken(subject, TokenProvider.REFRESH_TOKEN_EXPIRATION_SECONDS);
+
+        redisService.saveRefreshToken(TokenProvider.REDIS_PREFIX_REFRESH + subject, refreshToken, TokenProvider.REFRESH_TOKEN_EXPIRATION_SECONDS);
+
+        return TokenDto.of(accessToken, refreshToken);
+    }
+
+    public TokenDto schoolLogin(LoginDto loginDto){
+        if (!memberRepository.existsByStudentId(loginDto.getStudentId())) {
+            createMember(loginDto.getStudentId());
+        }
+        Member member = memberRepository.findByStudentId(loginDto.getStudentId())
+                .orElseThrow(() -> new MyException(USER_NOT_FOUND));
+        return createTokens(member);
+    }
+
+    public TokenDto reissueTokens(String refreshToken){
+        if(!tokenProvider.validateRefreshToken(refreshToken)){
+            return null;
+        }
+        String subject = tokenProvider.getUsernameByRefresh(refreshToken);
+        String storedRefreshToken = redisService.getRefreshToken(TokenProvider.REDIS_PREFIX_REFRESH + subject);
+
+        if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {
+            return null;
+        }
+        redisService.deleteRefreshToken(TokenProvider.REDIS_PREFIX_REFRESH + subject);
+        return createTokens(memberRepository.findById(Long.valueOf(subject))
+                .orElseThrow(() -> new MyException(USER_NOT_FOUND)));
+    }
+
+    @Transactional
     public Long updateMemberNicknameFireId(Long id, MemberUpdateNicknameDto memberUpdateNicknameDto){
-        Member member = memberRepository.findById(id).orElseThrow(()->new MyException(MyErrorCode.USER_NOT_FOUND));
+        Member member = memberRepository.findById(id).orElseThrow(
+                ()->new MyException(USER_NOT_FOUND));
         if(memberUpdateNicknameDto.getNickname()!=null) {
-            /*if (memberUpdateNicknameDto.getNickname().equals(member.getNickname())) {
-                throw new MyException(MyErrorCode.SAME_NICKNAME_UPDATE);
-            }*/
             if (memberRepository.existsByNickname(memberUpdateNicknameDto.getNickname())) {
-                throw new MyException(MyErrorCode.USER_DUPLICATE_NICKNAME);
+                throw new MyException(USER_DUPLICATE_NICKNAME);
             }
             if(memberUpdateNicknameDto.getNickname().trim().isEmpty()){
-                throw new MyException(MyErrorCode.NOT_BLANK_NICKNAME);
+                throw new MyException(NOT_BLANK_NICKNAME);
             }
             if(memberUpdateNicknameDto.getFireId()!=null){
                 member.updateNicknameAndFire(memberUpdateNicknameDto.getNickname(),memberUpdateNicknameDto.getFireId());
@@ -52,7 +93,7 @@ public class MemberService {
             member.updateFire(memberUpdateNicknameDto.getFireId());
         }
         else{
-            throw new MyException(MyErrorCode.EMPTY_REQUEST);
+            throw new MyException(EMPTY_REQUEST);
         }
         return member.getId();
     }
@@ -62,53 +103,11 @@ public class MemberService {
         memberRepository.delete(member);
     }
 
-    @Transactional
-    public TokenDto login(Member member){
-        LocalDateTime localDateTime = LocalDateTime.now();
-        long tokenValidMillisecond = 1000L * 60 * 60 * 2 ;//2시간
-        long refreshValidMillisecond = 1000L * 60 *60 *24;//24시간
-        String accessToken = tokenProvider.createToken(member.getId().toString(),member.getRoles(),localDateTime);
-        String refreshToken = tokenProvider.createRefreshToken(member.getId().toString(),localDateTime);
-        return TokenDto.of(accessToken,refreshToken,localDateTime.plus(Duration.ofMillis(tokenValidMillisecond)).toString(),localDateTime.plus(Duration.ofMillis(refreshValidMillisecond)).toString());
-    }
-
-    @Transactional(readOnly = true)
-    public TokenDto refreshToken(String token){
-        if(!tokenProvider.validateRefreshToken(token)){
-            throw new MyException(MyErrorCode.EXPIRED_TOKEN);
-        }
-        Long id = Long.valueOf(tokenProvider.getUsernameByRefresh(token));
-        Member member = memberRepository.findById(id).orElseThrow(()->new MyException(MyErrorCode.USER_NOT_FOUND));
-        return login(member);
-    }
-
-
-    @Transactional(readOnly = true)
     public MemberResponseDto getMember(Member member){
         return MemberResponseDto.of(member);
     }
 
-    @Transactional(readOnly = true)
     public List<MemberResponseDto> getAllMember(){
         return memberRepository.findAll().stream().map(MemberResponseDto::of).collect(Collectors.toList());
     }
-
-    @Transactional
-    public TokenDto schoolLogin(LoginDto loginDto){
-        /*if (!schoolLoginRepository.loginCheck(loginDto.getStudentId(), loginDto.getPassword())) {
-            throw new MyException(MyErrorCode.STUDENT_LOGIN_ERROR);
-        }*/
-        if (!memberRepository.existsByStudentId(loginDto.getStudentId())) {
-            createMember(loginDto.getStudentId());
-        }
-        Member member = memberRepository.findByStudentId(loginDto.getStudentId()).orElseThrow(() -> new MyException(MyErrorCode.USER_NOT_FOUND));
-        return login(member);
-
-    }
-    @Transactional
-    public void createMember(String studentId){
-        Member member = Member.builder().studentId(studentId).nickname(studentId).roles(Collections.singletonList("ROLE_USER")).build();
-        memberRepository.save(member);
-    }
-
 }
