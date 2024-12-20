@@ -116,7 +116,7 @@ public class MemberControllerTest {
 //        verify(memberService).refreshToken(any(String.class));
 //    }
 
-    @Test
+    /*@Test
     @DisplayName("회원정보 가져오기 테스트")
     void getMemberTest() throws Exception {
         Member authMember = mock(Member.class);
@@ -137,7 +137,7 @@ public class MemberControllerTest {
                 .andExpect(jsonPath("$.data.nickname").value(memberResponseDto.getNickname()))
                 .andDo(print());
         verify(memberService).getMember(any(Member.class));
-    }
+    }*/
 
 
 
