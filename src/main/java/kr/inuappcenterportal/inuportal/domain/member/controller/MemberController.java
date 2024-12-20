@@ -44,10 +44,11 @@ import static org.springframework.http.HttpStatus.*;
 @RequestMapping("/api/members")
 public class MemberController {
     private final MemberService memberService;
+    private final TokenProvider tokenProvider;
     private final PostService postService;
     private final ReplyService replyService;
 
-    @Operation(summary = "회원 닉네임/횃불이 이미지 변경",description = "url 헤더에 Auth 토큰,바디에 {nickname,fireId(횃불이 이미지 번호)}을 json 형식으로 보내주세요.성공 시 수정된 회원의 데이터베이스 아이디 값이 {data: id}으로 보내집니다.")
+    @Operation(summary = "회원 닉네임/횃불이 이미지 변경",description = "url 헤더에 Authorization 토큰,바디에 {nickname,fireId(횃불이 이미지 번호)}을 json 형식으로 보내주세요.성공 시 수정된 회원의 데이터베이스 아이디 값이 {data: id}으로 보내집니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200",description = "회원 닉네임/횃불이 이미지 변경 성공",content = @Content(schema = @Schema(implementation = ResponseDto.class))),
             @ApiResponse(responseCode = "404",description = "존재하지 않는 회원입니다.",content = @Content(schema = @Schema(implementation = ResponseDto.class)))
@@ -60,7 +61,7 @@ public class MemberController {
         return ResponseEntity.ok(ResponseDto.of(memberId,"회원 닉네임/횃불이 이미지 변경 성공"));
     }
 
-    @Operation(summary = "회원 삭제",description = "url 헤더에 Auth 토큰을 담아 보내주세요. 성공 시 삭제한 회원의 데이터베이스 아이디 값이 {data: id}으로 보내집니다.")
+    @Operation(summary = "회원 삭제",description = "url 헤더에 Authorization 토큰을 담아 보내주세요. 성공 시 삭제한 회원의 데이터베이스 아이디 값이 {data: id}으로 보내집니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200",description = "회원삭제성공",content = @Content(schema = @Schema(implementation = ResponseDto.class)))
             ,@ApiResponse(responseCode = "404",description = "존재하지 않는 회원입니다.",content = @Content(schema = @Schema(implementation = ResponseDto.class)))
@@ -73,7 +74,7 @@ public class MemberController {
         return ResponseEntity.ok(ResponseDto.of(id,"회원삭제성공"));
     }
 
-    @Operation(summary = "로그인",description = "바디에 {studentId,password}을 json 형식으로 보내주세요. 토큰 유효시간은 2시간, 리프레시 토큰의 유효시간은 1일입니다.")
+    @Operation(summary = "로그인",description = "바디에 {studentId,password}을 json 형식으로 보내주세요. 토큰 유효시간은 10분, 리프레시 토큰의 유효시간은 7일입니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200",description = "로그인 성공, 토큰이 발급되었습니다.",content = @Content(schema = @Schema(implementation = ResponseDto.class))),
             @ApiResponse(responseCode = "401",description = "학번 또는 비밀번호가 틀립니다.",content = @Content(schema = @Schema(implementation = ResponseDto.class))),
@@ -86,7 +87,7 @@ public class MemberController {
         ResponseCookie responseCookie = CookieUtil.createCookie(
                 TokenProvider.REFRESH_TOKEN_COOKIE_NAME,
                 tokenDto.getRefreshToken(),
-                TokenProvider.REFRESH_TOKEN_EXPIRATION_SECONDS
+                tokenProvider.getRefreshTokenExpirationSeconds()
         );
         return ResponseEntity.status(OK)
                 .header(AUTHORIZATION, TokenProvider.BEARER_PREFIX + tokenDto.getAccessToken())
@@ -94,13 +95,34 @@ public class MemberController {
                 .body(ResponseDto.of(null, "로그인 성공, 토큰이 발급되었습니다."));
     }
 
-    @Operation(summary = "토큰 재발급",description = "쿠키에 refresh 토큰을 보내주세요. 토큰 유효시간은 2시간, 리프레시 토큰의 유효시간은 1일입니다.")
+    @Operation(summary = "로그아웃",description = "쿠키에 refresh 토큰을 보내주세요. 쿠키가 초기화 됩니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200",description = "로그아웃 성공",content = @Content(schema = @Schema(implementation = ResponseDto.class)))
+            ,@ApiResponse(responseCode = "401",description = "만료된 토큰입니다.",content = @Content(schema = @Schema(implementation = ResponseDto.class)))
+    })
+    @PostMapping("/logout")
+    ResponseEntity<ResponseDto<?>> logout(HttpServletRequest httpServletRequest) {
+        log.info("로그아웃 호출");
+        String refreshToken = CookieUtil.findCookieByName(httpServletRequest, TokenProvider.REFRESH_TOKEN_COOKIE_NAME).getValue();
+        memberService.logout(refreshToken);
+
+        ResponseCookie responseCookie = CookieUtil.createCookie(
+                TokenProvider.REFRESH_TOKEN_COOKIE_NAME,
+                null,
+                CookieUtil.COOKIE_EXPIRATION_DELETE
+        );
+        return ResponseEntity.status(OK)
+                .header(SET_COOKIE, responseCookie.toString())
+                .body(ResponseDto.of(null, "로그아웃 성공"));
+    };
+
+    @Operation(summary = "토큰 재발급",description = "쿠키에 refresh 토큰을 보내주세요. 토큰 유효시간은 10분, 리프레시 토큰의 유효시간은 7일입니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200",description = "토큰 재발급 성공",content = @Content(schema = @Schema(implementation = ResponseDto.class)))
             ,@ApiResponse(responseCode = "401",description = "만료된 토큰입니다.",content = @Content(schema = @Schema(implementation = ResponseDto.class)))
     })
     @PostMapping("/refresh")
-    public ResponseEntity<ResponseDto<TokenDto>> refresh(HttpServletRequest httpServletRequest){
+    public ResponseEntity<ResponseDto<?>> refresh(HttpServletRequest httpServletRequest){
         log.info("토큰 재발급 호출");
         String refreshToken = CookieUtil.findCookieByName(httpServletRequest, TokenProvider.REFRESH_TOKEN_COOKIE_NAME).getValue();
         TokenDto reissueTokenDto = memberService.reissueTokens(refreshToken);
@@ -108,21 +130,20 @@ public class MemberController {
         ResponseCookie responseCookie = CookieUtil.createCookie(
                 TokenProvider.REFRESH_TOKEN_COOKIE_NAME,
                 reissueTokenDto != null ? reissueTokenDto.getRefreshToken() : null,
-                TokenProvider.REFRESH_TOKEN_EXPIRATION_SECONDS
+                reissueTokenDto != null ? tokenProvider.getRefreshTokenExpirationSeconds() : CookieUtil.COOKIE_EXPIRATION_DELETE
         );
         if (reissueTokenDto != null) {
             return ResponseEntity.status(OK)
                     .header(AUTHORIZATION, TokenProvider.BEARER_PREFIX + reissueTokenDto.getAccessToken())
                     .header(SET_COOKIE, responseCookie.toString())
                     .body(ResponseDto.of(null, "토큰 재발급 성공"));
-        } else {
-            return ResponseEntity.status(UNAUTHORIZED)
-                    .header(SET_COOKIE, responseCookie.toString())
-                    .body(ResponseDto.of(null, "토큰 재발급 실패, 다시 로그인 해주세요"));
         }
+        return ResponseEntity.status(UNAUTHORIZED)
+                .header(SET_COOKIE, responseCookie.toString())
+                .body(ResponseDto.of(null, "토큰 재발급 실패, 다시 로그인 해주세요"));
     }
 
-    @Operation(summary = "회원 가져오기",description = "url 헤더에 Auth 토큰을 담아 보내주세요")
+    @Operation(summary = "회원 가져오기",description = "url 헤더에 Authorization 토큰을 담아 보내주세요")
     @ApiResponses({
             @ApiResponse(responseCode = "200",description = "회원 가져오기 성공",content = @Content(schema = @Schema(implementation = MemberResponseDto.class)))
     })
@@ -141,7 +162,7 @@ public class MemberController {
         return ResponseEntity.ok(ResponseDto.of(memberService.getAllMember(),"모든 회원 가져오기 성공"));
     }
 
-    @Operation(summary = "회원이 작성한 모든 글 가져오기",description = "url 헤더에 Auth 토큰을 담아 보내주세요. 정렬기준 sort(date/공백(최신순), like)를, 페이지(공백일 시 1)를 보내주세요.")
+    @Operation(summary = "회원이 작성한 모든 글 가져오기",description = "url 헤더에 Authorization 토큰을 담아 보내주세요. 정렬기준 sort(date/공백(최신순), like)를, 페이지(공백일 시 1)를 보내주세요.")
     @ApiResponses({
             @ApiResponse(responseCode = "200",description = "회원이 작성한 모든 글 가져오기성공",content = @Content(schema = @Schema(implementation = PostListResponseDto.class)))
             ,@ApiResponse(responseCode = "404",description = "존재하지 않는 회원입니다.",content = @Content(schema = @Schema(implementation = ResponseDto.class)))
@@ -153,7 +174,7 @@ public class MemberController {
         return ResponseEntity.ok(ResponseDto.of(postService.getPostByMember(member,sort),"회원이 작성한 모든 게시글 가져오기 성공"));
     }
 
-    @Operation(summary = "회원이 스크랩한 모든 글 가져오기",description = "url 헤더에 Auth 토큰을 담아 보내주세요. 정렬기준 sort(date/공백(최신순), like, scrap)를, 페이지(공백일 시 1)를 보내주세요.")
+    @Operation(summary = "회원이 스크랩한 모든 글 가져오기",description = "url 헤더에 Authorization 토큰을 담아 보내주세요. 정렬기준 sort(date/공백(최신순), like, scrap)를, 페이지(공백일 시 1)를 보내주세요.")
     @ApiResponses({
             @ApiResponse(responseCode = "200",description = "회원이 스크랩한 모든 글 가져오기성공",content = @Content(schema = @Schema(implementation = ListResponseDto.class)))
             ,@ApiResponse(responseCode = "404",description = "존재하지 않는 회원입니다.",content = @Content(schema = @Schema(implementation = ResponseDto.class)))
@@ -166,7 +187,7 @@ public class MemberController {
         return ResponseEntity.ok(ResponseDto.of(postService.getScrapsByMember(member,sort,page),"회원이 스크랩한 모든 게시글 가져오기 성공"));
     }
 
-    @Operation(summary = "회원이 좋아요한 모든 글 가져오기",description = "url 헤더에 Auth 토큰을 담아 보내주세요. 정렬기준 sort(date/공백(최신순), like,scrap)를 보내주세요.")
+    @Operation(summary = "회원이 좋아요한 모든 글 가져오기",description = "url 헤더에 Authorization 토큰을 담아 보내주세요. 정렬기준 sort(date/공백(최신순), like,scrap)를 보내주세요.")
     @ApiResponses({
             @ApiResponse(responseCode = "200",description = "회원이 스크랩한 모든 글 가져오기성공",content = @Content(schema = @Schema(implementation = PostListResponseDto.class)))
             ,@ApiResponse(responseCode = "404",description = "존재하지 않는 회원입니다.",content = @Content(schema = @Schema(implementation = ResponseDto.class)))
@@ -178,7 +199,7 @@ public class MemberController {
         return ResponseEntity.ok(ResponseDto.of(postService.getLikeByMember(member,sort),"회원이 좋아요한 모든 게시글 가져오기 성공"));
     }
 
-    @Operation(summary = "회원이 작성한 모든 댓글 가져오기",description = "url 헤더에 Auth 토큰을 담아 보내주세요. 정렬기준 sort(date/공백(최신순), like)를 보내주세요.")
+    @Operation(summary = "회원이 작성한 모든 댓글 가져오기",description = "url 헤더에 Authorization 토큰을 담아 보내주세요. 정렬기준 sort(date/공백(최신순), like)를 보내주세요.")
     @ApiResponses({
             @ApiResponse(responseCode = "200",description = "회원이 스크랩한 모든 글 가져오기성공",content = @Content(schema = @Schema(implementation = PostListResponseDto.class)))
             ,@ApiResponse(responseCode = "404",description = "존재하지 않는 회원입니다.",content = @Content(schema = @Schema(implementation = ResponseDto.class)))
