@@ -29,6 +29,13 @@ public class TokenProvider {
     private final Key refreshTokenSigningKey;
     private static final String AUTHORITIES_KEY = "roles";
 
+    public static final String REDIS_PREFIX_REFRESH = "RT:";
+    // TODO: 변경할 토큰 시간을 고민하고 설정 파일에서 받아오도록 해야한다
+    public static final long ACCESS_TOKEN_EXPIRATION_SECONDS = 1000L * 60 * 60 * 2 ;//2시간
+    public static final long REFRESH_TOKEN_EXPIRATION_SECONDS = 1000L * 60 * 60 * 24;
+    public static final String BEARER_PREFIX = "Bearer ";
+    public static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
+
     public TokenProvider(
             UserDetailsService userDetailsService,
             @Value("${jwtSecret}") String accessTokenSecret,
