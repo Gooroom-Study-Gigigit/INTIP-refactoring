@@ -19,7 +19,7 @@ public class ReplyDto {
 
 
     @Builder
-    public ReplyDto(String content, boolean anonymous){
+    public ReplyDto(String content, Boolean anonymous){
         this.content =content;
         this.anonymous =anonymous;
     }

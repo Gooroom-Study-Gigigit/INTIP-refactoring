@@ -57,7 +57,7 @@ public class ReplyResponseDto {
                 .writer(writer)
                 .fireId(fireId)
                 .content(reply.getContent())
-                .like(reply.getLikeReplies().size())
+                .like(reply.getLikeCount())
                 .createDate(reply.getCreateDate().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")))
                 .modifiedDate(reply.getModifiedDate().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")))
                 .reReplies(reReplyResponseDtoList)

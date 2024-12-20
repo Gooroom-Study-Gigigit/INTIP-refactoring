@@ -7,6 +7,7 @@ import kr.inuappcenterportal.inuportal.domain.post.model.Post;
 import kr.inuappcenterportal.inuportal.domain.post.repository.PostRepository;
 import kr.inuappcenterportal.inuportal.domain.postLike.model.PostLike;
 import kr.inuappcenterportal.inuportal.domain.postLike.repository.LikePostRepository;
+import kr.inuappcenterportal.inuportal.domain.reply.service.ReplyQueryService;
 import kr.inuappcenterportal.inuportal.domain.scrap.model.Scrap;
 import kr.inuappcenterportal.inuportal.domain.scrap.repository.ScrapRepository;
 import kr.inuappcenterportal.inuportal.global.dto.ListResponseDto;
@@ -16,7 +17,6 @@ import kr.inuappcenterportal.inuportal.domain.post.dto.PostResponseDto;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyErrorCode;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyException;
 import kr.inuappcenterportal.inuportal.global.service.RedisService;
-import kr.inuappcenterportal.inuportal.domain.reply.service.ReplyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -38,7 +38,7 @@ public class PostService {
     private final MemberRepository memberRepository;
     private final LikePostRepository likePostRepository;
     private final ScrapRepository scrapRepository;
-    private final ReplyService replyService;
+    private final ReplyQueryService replyQueryService;
     private final CategoryRepository categoryRepository;
     private final RedisService redisService;
     private final PostImageService postImageService;
@@ -118,8 +118,7 @@ public class PostService {
                 writer = post.getMember().getNickname();
             }
         }
-        return PostResponseDto.of(post, writer, fireId, isLiked, isScraped, hasAuthority,
-                replyService.getReplies(postId, member), replyService.getBestReplies(postId, member));
+        return  PostResponseDto.of(post,writer,fireId,isLiked,isScraped,hasAuthority,replyQueryService.getReplies(postId,member),replyQueryService.getBestReplies(postId,member));
     }
 
     @Transactional(readOnly = true)

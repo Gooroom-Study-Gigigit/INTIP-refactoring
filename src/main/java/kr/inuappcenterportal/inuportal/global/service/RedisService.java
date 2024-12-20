@@ -50,7 +50,6 @@ public class RedisService {
         redisTemplate.expire(key,expireTime, TimeUnit.SECONDS);
     }
 
-
     public void saveFireImage(List<MultipartFile> images) throws IOException {
         for(int i = 0 ; i<images.size();i++){
             byte[] bytes = images.get(i).getBytes();
