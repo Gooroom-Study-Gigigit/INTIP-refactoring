@@ -1,6 +1,11 @@
 package kr.inuappcenterportal.inuportal.service;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import kr.inuappcenterportal.inuportal.domain.member.model.Member;
+import kr.inuappcenterportal.inuportal.domain.post.model.Post;
 import kr.inuappcenterportal.inuportal.domain.post.service.PostService;
 import kr.inuappcenterportal.inuportal.domain.post.dto.PostDto;
 import kr.inuappcenterportal.inuportal.domain.category.repository.CategoryRepository;
@@ -14,9 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.when;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 public class PostServiceTest {
@@ -29,19 +32,40 @@ public class PostServiceTest {
 
     @Mock
     private RedisService redisService;
+
     @Mock
     private CategoryRepository categoryRepository;
 
-
-
     @Test
-    @DisplayName("게시글 저장 테스트")
-    public void saveOnlyPostTest() throws Exception{
-        Member member = Member.builder().nickname("testMember").studentId("201900000").roles(Collections.singletonList("ROLE_USER")).build();
-        PostDto postDto = PostDto.builder().title("title").content("content").anonymous(true).category("수강신청").build();
-        when(categoryRepository.existsByCategory(any(String.class))).thenReturn(true);
-        postService.saveOnlyPost(member,postDto);
+    @DisplayName("새로운 게시글을 저장한다.")
+    void saveOnlyPostTest() throws Exception {
+        // given
+        Member member = Member.builder()
+                .nickname("testMember")
+                .studentId("201900000")
+                .roles(Collections.singletonList("ROLE_USER"))
+                .build();
 
+        PostDto postDto = PostDto.builder()
+                .title("testTitle")
+                .content("testContent")
+                .anonymous(true)
+                .category("testCategory")
+                .build();
+
+        when(categoryRepository.existsByCategory("testCategory")).thenReturn(true);
+        when(postRepository.save(any(Post.class))).thenAnswer(invocation -> {
+            Post savedPost = invocation.getArgument(0);
+            ReflectionTestUtils.setField(savedPost, "id", 1L);
+            return savedPost;
+        });
+
+        // when
+        Long savedPostId = postService.saveOnlyPost(member, postDto);
+        System.out.println("savedPostId = " + savedPostId);
+
+        // then
+        assertThat(savedPostId).isEqualTo(1L);
     }
 
     /*@Test
@@ -53,6 +77,4 @@ public class PostServiceTest {
         *//*MyException myException = postService.saveOnlyPost(member,postDto);*//*
         Assertions.assertThrows(MyException.class, ()->postService.saveOnlyPost(member,postDto));
     }*/
-
-
 }
