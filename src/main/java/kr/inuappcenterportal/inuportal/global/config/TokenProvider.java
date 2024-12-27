@@ -6,6 +6,7 @@ import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.HttpServletRequest;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyErrorCode;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyException;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,28 +28,35 @@ public class TokenProvider {
 
     private final Key accessTokenSigningKey;
     private final Key refreshTokenSigningKey;
+    private final long accessTokenExpirationSeconds;
+    private final long refreshTokenExpirationSeconds;
+
     private static final String AUTHORITIES_KEY = "roles";
 
     public static final String REDIS_PREFIX_REFRESH = "RT:";
-    // TODO: 변경할 토큰 시간을 고민하고 설정 파일에서 받아오도록 해야한다
-    public static final long ACCESS_TOKEN_EXPIRATION_SECONDS = 1000L * 60 * 60 * 2 ;//2시간
-    public static final long REFRESH_TOKEN_EXPIRATION_SECONDS = 1000L * 60 * 60 * 24;
+
+    public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String BEARER_PREFIX = "Bearer ";
     public static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
 
     public TokenProvider(
             UserDetailsService userDetailsService,
             @Value("${jwtSecret}") String accessTokenSecret,
-            @Value("${refreshSecret}") String refreshTokenSecret) {
+            @Value("${refreshSecret}") String refreshTokenSecret,
+            @Value("${jwtExpirationSeconds}") long accessTokenExpirationSeconds,
+            @Value("${refreshExpirationSeconds}") long refreshTokenExpirationSeconds) {
         this.userDetailsService = userDetailsService;
         this.accessTokenSigningKey = Keys.hmacShaKeyFor(accessTokenSecret.getBytes(StandardCharsets.UTF_8));
         this.refreshTokenSigningKey = Keys.hmacShaKeyFor(refreshTokenSecret.getBytes(StandardCharsets.UTF_8));
+        this.accessTokenExpirationSeconds = accessTokenExpirationSeconds;
+        this.refreshTokenExpirationSeconds = refreshTokenExpirationSeconds;
     }
 
-    public String createAccessToken(String id, List<String> roles, long accessTokenExpirationSeconds){
+    public String createAccessToken(String id, List<String> roles){
 
         Date now = new Date();
-        Date accessExpiredTime = new Date(now.getTime() + accessTokenExpirationSeconds);
+        long accessTokenExpirationMilliseconds = accessTokenExpirationSeconds * 1000;
+        Date accessExpiredTime = new Date(now.getTime() + accessTokenExpirationMilliseconds);
 
         return Jwts.builder()
                 .setSubject(id)
@@ -59,10 +67,11 @@ public class TokenProvider {
                 .compact();
     }
 
-    public String createRefreshToken(String id, long refreshTokenExpirationSeconds){
+    public String createRefreshToken(String id){
 
         Date now = new Date();
-        Date refreshExpiredTime = new Date(now.getTime() + refreshTokenExpirationSeconds);
+        long refreshTokenExpirationMilliseconds = refreshTokenExpirationSeconds * 1000;
+        Date refreshExpiredTime = new Date(now.getTime() + refreshTokenExpirationMilliseconds);
 
         return Jwts.builder()
                 .setSubject(id)
@@ -90,8 +99,13 @@ public class TokenProvider {
     public String getUsernameByRefresh(String token){
         return Jwts.parserBuilder().setSigningKey(refreshTokenSigningKey).build().parseClaimsJws(token).getBody().getSubject();
     }
+
     public String resolveToken(HttpServletRequest request){
-        return request.getHeader("Auth");
+        String requestAccessTokenInHeader = request.getHeader(AUTHORIZATION_HEADER);
+        if (requestAccessTokenInHeader != null && requestAccessTokenInHeader.startsWith(BEARER_PREFIX)) {
+            return requestAccessTokenInHeader.substring(BEARER_PREFIX.length());
+        }
+        return null;
     }
 
     public boolean validateToken(String token){
@@ -116,5 +130,13 @@ public class TokenProvider {
         }catch (IllegalArgumentException ex){
             throw new MyException(MyErrorCode.UNKNOWN_TOKEN_ERROR);
         }
+    }
+
+    public long getAccessTokenExpirationSeconds() {
+        return accessTokenExpirationSeconds;
+    }
+
+    public long getRefreshTokenExpirationSeconds() {
+        return refreshTokenExpirationSeconds;
     }
 }
