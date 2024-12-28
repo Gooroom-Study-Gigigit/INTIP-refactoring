@@ -40,10 +40,10 @@ public class MemberService {
     private TokenDto createTokens(Member member) {
         String subject = member.getId().toString();
 
-        String accessToken = tokenProvider.createAccessToken(subject, member.getRoles(), TokenProvider.ACCESS_TOKEN_EXPIRATION_SECONDS);
-        String refreshToken = tokenProvider.createRefreshToken(subject, TokenProvider.REFRESH_TOKEN_EXPIRATION_SECONDS);
+        String accessToken = tokenProvider.createAccessToken(subject, member.getRoles());
+        String refreshToken = tokenProvider.createRefreshToken(subject);
 
-        redisService.saveRefreshToken(TokenProvider.REDIS_PREFIX_REFRESH + subject, refreshToken, TokenProvider.REFRESH_TOKEN_EXPIRATION_SECONDS);
+        redisService.saveRefreshToken(TokenProvider.REDIS_PREFIX_REFRESH + subject, refreshToken, tokenProvider.getRefreshTokenExpirationSeconds());
 
         return TokenDto.of(accessToken, refreshToken);
     }
@@ -55,6 +55,11 @@ public class MemberService {
         Member member = memberRepository.findByStudentId(loginDto.getStudentId())
                 .orElseThrow(() -> new MyException(USER_NOT_FOUND));
         return createTokens(member);
+    }
+
+    public void logout(String refreshToken) {
+        String subject = tokenProvider.getUsernameByRefresh(refreshToken);
+        redisService.deleteRefreshToken(TokenProvider.REDIS_PREFIX_REFRESH + subject);
     }
 
     public TokenDto reissueTokens(String refreshToken){
