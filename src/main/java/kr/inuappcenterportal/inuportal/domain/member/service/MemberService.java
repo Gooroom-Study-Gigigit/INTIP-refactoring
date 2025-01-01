@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,8 +41,8 @@ public class MemberService {
     private TokenDto createTokens(Member member) {
         String subject = member.getId().toString();
 
-        String accessToken = tokenProvider.createAccessToken(subject, member.getRoles());
-        String refreshToken = tokenProvider.createRefreshToken(subject);
+        String accessToken = tokenProvider.createAccessToken(subject, member.getRoles(), new Date());
+        String refreshToken = tokenProvider.createRefreshToken(subject, new Date());
 
         redisService.saveRefreshToken(TokenProvider.REDIS_PREFIX_REFRESH + subject, refreshToken, tokenProvider.getRefreshTokenExpirationSeconds());
 

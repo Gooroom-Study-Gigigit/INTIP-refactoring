@@ -52,9 +52,8 @@ public class TokenProvider {
         this.refreshTokenExpirationSeconds = refreshTokenExpirationSeconds;
     }
 
-    public String createAccessToken(String id, List<String> roles){
+    public String createAccessToken(String id, List<String> roles, Date now){
 
-        Date now = new Date();
         long accessTokenExpirationMilliseconds = accessTokenExpirationSeconds * 1000;
         Date accessExpiredTime = new Date(now.getTime() + accessTokenExpirationMilliseconds);
 
@@ -67,9 +66,8 @@ public class TokenProvider {
                 .compact();
     }
 
-    public String createRefreshToken(String id){
+    public String createRefreshToken(String id, Date now){
 
-        Date now = new Date();
         long refreshTokenExpirationMilliseconds = refreshTokenExpirationSeconds * 1000;
         Date refreshExpiredTime = new Date(now.getTime() + refreshTokenExpirationMilliseconds);
 
