@@ -1,5 +1,6 @@
 package kr.inuappcenterportal.inuportal.domain.member.service;
 
+import kr.inuappcenterportal.inuportal.domain.member.enums.Role;
 import kr.inuappcenterportal.inuportal.global.config.TokenProvider;
 import kr.inuappcenterportal.inuportal.domain.member.model.Member;
 import kr.inuappcenterportal.inuportal.domain.member.dto.LoginDto;
@@ -31,11 +32,13 @@ public class MemberService {
     private final TokenProvider tokenProvider;
     private final RedisService redisService;
 
-
-    @Transactional
     public void createMember(String studentId){
-        Member member = Member.builder().studentId(studentId).nickname(studentId).roles(Collections.singletonList("ROLE_USER")).build();
-        memberRepository.save(member);
+        memberRepository.save(Member.builder()
+                .studentId(studentId)
+                .nickname(studentId)
+                .roles(Collections.singletonList(Role.USER.getAuthority()))
+                .build()
+        );
     }
 
     private TokenDto createTokens(Member member) {
@@ -49,6 +52,7 @@ public class MemberService {
         return TokenDto.of(accessToken, refreshToken);
     }
 
+    @Transactional
     public TokenDto schoolLogin(LoginDto loginDto){
         if (!memberRepository.existsByStudentId(loginDto.getStudentId())) {
             createMember(loginDto.getStudentId());
