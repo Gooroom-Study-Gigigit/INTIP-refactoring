@@ -7,7 +7,9 @@ import kr.inuappcenterportal.inuportal.global.exception.ex.MyErrorCode;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -23,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class TokenProviderTest {
     private TokenProvider tokenProvider;
 
@@ -39,7 +42,6 @@ class TokenProviderTest {
 
     @BeforeEach
     void setUp() {
-        userDetailsService = mock(UserDetailsService.class);
         tokenProvider = new TokenProvider(
                 userDetailsService,
                 TEST_SECRET,
