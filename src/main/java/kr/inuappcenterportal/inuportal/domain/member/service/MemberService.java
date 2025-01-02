@@ -80,27 +80,13 @@ public class MemberService {
 
     @Transactional
     public Long updateMemberNicknameFireId(Long id, MemberUpdateNicknameDto memberUpdateNicknameDto){
-        Member member = memberRepository.findById(id).orElseThrow(
-                ()->new MyException(USER_NOT_FOUND));
-        if(memberUpdateNicknameDto.getNickname()!=null) {
-            if (memberRepository.existsByNickname(memberUpdateNicknameDto.getNickname())) {
-                throw new MyException(USER_DUPLICATE_NICKNAME);
-            }
-            if(memberUpdateNicknameDto.getNickname().trim().isEmpty()){
-                throw new MyException(NOT_BLANK_NICKNAME);
-            }
-            if(memberUpdateNicknameDto.getFireId()!=null){
-                member.updateNicknameAndFire(memberUpdateNicknameDto.getNickname(),memberUpdateNicknameDto.getFireId());
-            }
-            else{
-                member.updateNickName(memberUpdateNicknameDto.getNickname());
-            }
-        }else if(memberUpdateNicknameDto.getFireId()!=null){
-            member.updateFire(memberUpdateNicknameDto.getFireId());
-        }
-        else{
-            throw new MyException(EMPTY_REQUEST);
-        }
+        checkNickNameDuplicate(memberUpdateNicknameDto.getNickname());
+
+        Member member = memberRepository.findById(id)
+                .orElseThrow(() -> new MyException(USER_NOT_FOUND));
+        member.updateNicknameAndFire(
+                memberUpdateNicknameDto.getNickname(),
+                memberUpdateNicknameDto.getFireId());
         return member.getId();
     }
 
@@ -115,5 +101,11 @@ public class MemberService {
 
     public List<MemberResponseDto> getAllMember(){
         return memberRepository.findAll().stream().map(MemberResponseDto::of).collect(Collectors.toList());
+    }
+
+    private void checkNickNameDuplicate(String nickName) {
+        if (memberRepository.existsByNickname(nickName)) {
+            throw new MyException(USER_DUPLICATE_NICKNAME);
+        }
     }
 }
