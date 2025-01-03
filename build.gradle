@@ -46,6 +46,8 @@ dependencies {
     implementation 'com.oracle.database.jdbc:ojdbc11'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator' // Spring Actuator
+    runtimeOnly 'io.micrometer:micrometer-registry-prometheus' // Prometheus
 }
 
 tasks.named('test') {
