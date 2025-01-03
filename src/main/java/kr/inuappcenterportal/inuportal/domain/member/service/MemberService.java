@@ -96,6 +96,11 @@ public class MemberService {
 
     @Transactional
     public void delete(Member member){
+        String refreshTokenRedisKey = TokenProvider.REDIS_PREFIX_REFRESH + member.getId();
+        String refreshToken = redisService.getRefreshToken(refreshTokenRedisKey);
+        if (refreshToken != null) {
+            redisService.deleteRefreshToken(refreshTokenRedisKey);
+        }
         memberRepository.delete(member);
     }
 
