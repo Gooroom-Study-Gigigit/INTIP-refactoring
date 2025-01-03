@@ -24,6 +24,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -197,8 +198,7 @@ public class ReplyControllerTest {
                 )
                 .andDo(print());
 
-        verify(replyCommandService, times(0))
-                .saveReReply(any(Member.class), any(ReplyDto.class), any(Long.class));
+        verifyNoInteractions(replyCommandService);
     }
 
     @Test
@@ -221,8 +221,7 @@ public class ReplyControllerTest {
                 )
                 .andDo(print());
 
-        verify(replyCommandService, times(0))
-                .saveReReply(any(Member.class), any(ReplyDto.class), any(Long.class));
+        verifyNoInteractions(replyCommandService);
     }
 
     @Test
@@ -296,8 +295,7 @@ public class ReplyControllerTest {
                 .andExpect(jsonPath("$.msg").value("must not be blank"))
                 .andDo(print());
 
-        verify(replyCommandService, times(0))
-                .updateReply(any(Long.class), any(ReplyDto.class), any(Long.class));
+        verifyNoInteractions(replyCommandService);
     }
 
     @Test
@@ -319,8 +317,7 @@ public class ReplyControllerTest {
                 .andExpect(jsonPath("$.msg").value("must not be null"))
                 .andDo(print());
 
-        verify(replyCommandService, times(0))
-                .updateReply(any(Long.class), any(ReplyDto.class), any(Long.class));
+        verifyNoInteractions(replyCommandService);
     }
 
     @Test

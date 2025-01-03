@@ -1,6 +1,5 @@
 package kr.inuappcenterportal.inuportal.domain.reply.service;
 
-import jakarta.persistence.Tuple;
 import kr.inuappcenterportal.inuportal.domain.member.model.Member;
 import kr.inuappcenterportal.inuportal.domain.post.model.Post;
 import kr.inuappcenterportal.inuportal.domain.post.repository.PostRepository;
@@ -17,7 +16,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -36,8 +37,19 @@ public class ReplyQueryService {
                 .map(ReplyListResponseDto::of).collect(Collectors.toList());
     }
 
+    // 정렬 기준을 정합니다.
+    private Sort sortReply(String sort){
+        if(sort.equals("date")){
+            return Sort.by(Sort.Direction.DESC, "id");
+        }
+        if(sort.equals("like")){
+            return Sort.by(Sort.Direction.DESC, "likeCount","id");
+        }
+        throw new MyException(MyErrorCode.WRONG_SORT_TYPE);
+    }
+
     // 게시글에 해당하는 댓글, 대댓글을 조회합니다.
-    public List<ReplyResponseDto> getReplies(Long postId, Member member) {
+    public List<ReplyResponseDto> getRepliesByPost(Long postId, Member member) {
         Post post = postRepository.findById(postId).orElseThrow(()->new MyException(MyErrorCode.POST_NOT_FOUND));
         List<Reply> replies = replyRepository.findAllNonDeletedOrHavingChildren(post);
         Set<Long> likedReplyIds = getMemberLikedIds(replies,member);
@@ -63,6 +75,20 @@ public class ReplyQueryService {
                     long fireId = writer.equals("(알수없음)") ? 13 : reReply.getMember().getFireId(); // 댓글 프로필 이미지 id값
                     return ReReplyResponseDto.of(reReply, writer, fireId, isLiked, hasAuthority(member, reReply));
                 }).toList();
+    }
+
+    // 좋아요 개수가 많은 순으로 댓글을 조회합니다. ReReplyResponseDto 에는 reply, reReply 둘다 포함
+    public List<ReReplyResponseDto> getBestReplies(Long postId, Member member){
+        Post post = postRepository.findById(postId).orElseThrow(()->new MyException(MyErrorCode.POST_NOT_FOUND));
+        List<Reply> replies = replyRepository.findBestReplies(post);
+        Set<Long> likedReplyIds = getMemberLikedIds(replies, member);
+        return replies.stream().map(reply -> {
+            String writer = writerName(reply,post);
+            long fireId = writer.equals("(알수없음)")||writer.equals("(삭제됨)")?13: reply.getMember().getFireId();
+            boolean isLiked = likedReplyIds.contains(reply.getId());
+            boolean hasAuthority = hasAuthority(member, reply);
+            return ReReplyResponseDto.of(reply,writer,fireId, isLiked,hasAuthority);
+        }).collect(Collectors.toList());
     }
 
     // 사용자가 자신의 댓글인지 여부를 판단하여, 수정, 또는 삭제 여부를 반환
@@ -91,20 +117,6 @@ public class ReplyQueryService {
         return reply.getMember().getNickname();
     }
 
-    // 좋아요 개수가 많은 순으로 댓글을 조회합니다.
-    public List<ReReplyResponseDto> getBestReplies(Long postId, Member member){
-        Post post = postRepository.findById(postId).orElseThrow(()->new MyException(MyErrorCode.POST_NOT_FOUND));
-        List<Reply> replies = replyRepository.findBestReplies(post);
-        Set<Long> likedReplyIds = getMemberLikedIds(replies, member);
-        return replies.stream().map(reply -> {
-            String writer = writerName(reply,post);
-            long fireId = writer.equals("(알수없음)")||writer.equals("(삭제됨)")?13: reply.getMember().getFireId();
-            boolean isLiked = likedReplyIds.contains(reply.getId());
-            boolean hasAuthority = hasAuthority(member, reply);
-            return ReReplyResponseDto.of(reply,writer,fireId, isLiked,hasAuthority);
-        }).collect(Collectors.toList());
-    }
-
     // 자신이 좋아요를 누른 댓글들을 id 들을 파악합니다.
     private Set<Long> getMemberLikedIds(List<Reply> replies, Member member){
         Set<Long> likedReplyIds = new HashSet<>();
@@ -115,16 +127,5 @@ public class ReplyQueryService {
             likedReplyIds.addAll(likeReplyRepository.findLikedReplyIdsByMember(member, replyIds));
         }
         return likedReplyIds;
-    }
-
-    // 정렬 기준을 정합니다.
-    private Sort sortReply(String sort){
-        if(sort.equals("date")){
-            return Sort.by(Sort.Direction.DESC, "id");
-        }
-        if(sort.equals("like")){
-            return Sort.by(Sort.Direction.DESC, "likeCount","id");
-        }
-        throw new MyException(MyErrorCode.WRONG_SORT_TYPE);
     }
 }
