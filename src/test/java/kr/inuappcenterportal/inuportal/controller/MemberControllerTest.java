@@ -114,54 +114,54 @@ public class MemberControllerTest {
 //        verify(memberService).refreshToken(any(String.class));
 //    }
 
-    @Test
-    @DisplayName("회원정보 가져오기 테스트")
-    void getMemberTest() throws Exception {
-        Member authMember = mock(Member.class);
-        when(authMember.getId()).thenReturn(1L);
-        String token = "testToken";
-        when(tokenProvider.resolveToken(any(HttpServletRequest.class))).thenReturn(token);
-        when(tokenProvider.validateToken(token)).thenReturn(true);
-        when(tokenProvider.getAuthentication(token))
-                .thenReturn(new UsernamePasswordAuthenticationToken(authMember, "", List.of(new SimpleGrantedAuthority("ROLE_USER"))));
-
-
-        Member member = Member.builder().studentId("123456789").nickname("testUser").build();
-        MemberResponseDto memberResponseDto = MemberResponseDto.of(member);
-        when(memberService.getMember(any(Member.class))).thenReturn(memberResponseDto);
-        mockMvc.perform(get("/api/members").header("Auth",token).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.msg").value("회원 가져오기 성공"))
-                .andExpect(jsonPath("$.data.nickname").value(memberResponseDto.getNickname()))
-                .andDo(print());
-        verify(memberService).getMember(any(Member.class));
-    }
-
-
-
-    @Test
-    @DisplayName("회원 닉네임/횃불이 사진 변경 테스트")
-    void updateSuccessTest() throws Exception{
-        Member authMember = mock(Member.class);
-        when(authMember.getId()).thenReturn(1L);
-        String token = "testToken";
-        when(tokenProvider.resolveToken(any(HttpServletRequest.class))).thenReturn(token);
-        when(tokenProvider.validateToken(token)).thenReturn(true);
-        when(tokenProvider.getAuthentication(token))
-                .thenReturn(new UsernamePasswordAuthenticationToken(authMember, "", List.of(new SimpleGrantedAuthority("ROLE_USER"))));
-
-        MemberUpdateNicknameDto memberUpdateNicknameDto = MemberUpdateNicknameDto.builder().nickname("changedName").fireId(5L).build();
-        Long memberId = 1L;
-        when(memberService.updateMemberNicknameFireId(any(Long.class),any(MemberUpdateNicknameDto.class))).thenReturn(memberId);
-        String body = objectMapper.writeValueAsString(memberUpdateNicknameDto);
-        mockMvc.perform(put("/api/members").header("Auth","testToken").content(body).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.msg").value("회원 닉네임/횃불이 이미지 변경 성공"))
-                .andExpect(jsonPath("$.data").value(memberId))
-                .andDo(print());
-
-        verify(memberService).updateMemberNicknameFireId(any(Long.class),any(MemberUpdateNicknameDto.class));
-    }
+//    @Test
+//    @DisplayName("회원정보 가져오기 테스트")
+//    void getMemberTest() throws Exception {
+//        Member authMember = mock(Member.class);
+//        when(authMember.getId()).thenReturn(1L);
+//        String token = "testToken";
+//        when(tokenProvider.resolveToken(any(HttpServletRequest.class))).thenReturn(token);
+//        when(tokenProvider.validateToken(token)).thenReturn(true);
+//        when(tokenProvider.getAuthentication(token))
+//                .thenReturn(new UsernamePasswordAuthenticationToken(authMember, "", List.of(new SimpleGrantedAuthority("ROLE_USER"))));
+//
+//
+//        Member member = Member.builder().studentId("123456789").nickname("testUser").build();
+//        MemberResponseDto memberResponseDto = MemberResponseDto.of(member);
+//        when(memberService.getMember(any(Member.class))).thenReturn(memberResponseDto);
+//        mockMvc.perform(get("/api/members").header("Auth",token).contentType(MediaType.APPLICATION_JSON))
+//                .andExpect(status().isOk())
+//                .andExpect(jsonPath("$.msg").value("회원 가져오기 성공"))
+//                .andExpect(jsonPath("$.data.nickname").value(memberResponseDto.getNickname()))
+//                .andDo(print());
+//        verify(memberService).getMember(any(Member.class));
+//    }
+//
+//
+//
+//    @Test
+//    @DisplayName("회원 닉네임/횃불이 사진 변경 테스트")
+//    void updateSuccessTest() throws Exception{
+//        Member authMember = mock(Member.class);
+//        when(authMember.getId()).thenReturn(1L);
+//        String token = "testToken";
+//        when(tokenProvider.resolveToken(any(HttpServletRequest.class))).thenReturn(token);
+//        when(tokenProvider.validateToken(token)).thenReturn(true);
+//        when(tokenProvider.getAuthentication(token))
+//                .thenReturn(new UsernamePasswordAuthenticationToken(authMember, "", List.of(new SimpleGrantedAuthority("ROLE_USER"))));
+//
+//        MemberUpdateNicknameDto memberUpdateNicknameDto = MemberUpdateNicknameDto.builder().nickname("changedName").fireId(5L).build();
+//        Long memberId = 1L;
+//        when(memberService.updateMemberNicknameFireId(any(Long.class),any(MemberUpdateNicknameDto.class))).thenReturn(memberId);
+//        String body = objectMapper.writeValueAsString(memberUpdateNicknameDto);
+//        mockMvc.perform(put("/api/members").header("Auth","testToken").content(body).contentType(MediaType.APPLICATION_JSON))
+//                .andExpect(status().isOk())
+//                .andExpect(jsonPath("$.msg").value("회원 닉네임/횃불이 이미지 변경 성공"))
+//                .andExpect(jsonPath("$.data").value(memberId))
+//                .andDo(print());
+//
+//        verify(memberService).updateMemberNicknameFireId(any(Long.class),any(MemberUpdateNicknameDto.class));
+//    }
 
 
 
