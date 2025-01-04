@@ -84,10 +84,11 @@ public class MemberService {
 
     @Transactional
     public Long updateMemberNicknameFireId(Long id, MemberUpdateNicknameDto memberUpdateNicknameDto){
-        checkNickNameDuplicate(memberUpdateNicknameDto.getNickname());
-
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new MyException(USER_NOT_FOUND));
+        if (!member.getNickname().equals(memberUpdateNicknameDto.getNickname())) {
+            checkNickNameDuplicate(memberUpdateNicknameDto.getNickname());
+        }
         member.updateNicknameAndFire(
                 memberUpdateNicknameDto.getNickname(),
                 memberUpdateNicknameDto.getFireId());
