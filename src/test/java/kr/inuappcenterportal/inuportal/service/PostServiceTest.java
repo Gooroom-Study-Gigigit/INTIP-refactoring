@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -22,6 +21,8 @@ import kr.inuappcenterportal.inuportal.domain.post.service.PostService;
 import kr.inuappcenterportal.inuportal.domain.post.dto.PostDto;
 import kr.inuappcenterportal.inuportal.domain.category.repository.CategoryRepository;
 import kr.inuappcenterportal.inuportal.domain.post.repository.PostRepository;
+import kr.inuappcenterportal.inuportal.domain.postLike.model.PostLike;
+import kr.inuappcenterportal.inuportal.domain.postLike.repository.LikePostRepository;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyException;
 import kr.inuappcenterportal.inuportal.global.service.RedisService;
 import org.junit.jupiter.api.DisplayName;
@@ -55,6 +56,9 @@ public class PostServiceTest {
 
     @Mock
     private CategoryRepository categoryRepository;
+
+    @Mock
+    private LikePostRepository likePostRepository;
 
     @Test
     @DisplayName("새로운 게시글을 저장한다.")
@@ -256,5 +260,68 @@ public class PostServiceTest {
         verify(postCommonService).findPostByIdOrThrow(postId);
         verify(postCommonService).validateMemberAuthorization(post, memberId);
         verify(postRepository, never()).delete(post);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 게시글 삭제에 실패한다")
+    void delete_Fail_PostNotFound() {
+        // given
+        Long postId = 1L;
+        Long memberId = 1L;
+
+        when(postCommonService.findPostByIdOrThrow(postId))
+                .thenThrow(new MyException(MyErrorCode.POST_NOT_FOUND));
+
+        // when & then
+        MyException exception = assertThrows(MyException.class,
+                () -> postService.delete(memberId, postId));
+
+        assertEquals(MyErrorCode.POST_NOT_FOUND, exception.getErrorCode());
+        verify(postCommonService).findPostByIdOrThrow(postId);
+        verify(postRepository, never()).delete(any());
+    }
+
+    @Test
+    @DisplayName("게시글 좋아요 추가에 성공한다")
+    void likePost_Success_Add() {
+        // given
+        Long postId = 1L;
+        Long memberId = 2L;
+        Long authorId = 3L;
+
+        Member member = Member.builder()
+                .nickname("testMember")
+                .studentId("201900000")
+                .roles(Collections.singletonList("ROLE_USER"))
+                .build();
+        ReflectionTestUtils.setField(member, "id", memberId);
+
+        Member author = Member.builder()
+                .nickname("author")
+                .studentId("201900001")
+                .roles(Collections.singletonList("ROLE_USER"))
+                .build();
+        ReflectionTestUtils.setField(author, "id", authorId);
+
+        Post post = Post.builder()
+                .title("test title")
+                .content("test content")
+                .anonymous(false)
+                .category("수강신청")
+                .member(author)
+                .build();
+        ReflectionTestUtils.setField(post, "id", postId);
+
+        when(postRepository.findByIdWithLock(postId)).thenReturn(Optional.of(post));
+        when(likePostRepository.existsByMemberAndPost(member, post)).thenReturn(false);
+
+        // when
+        int result = postService.likePost(member, postId);
+
+        // then
+        assertEquals(1, result);
+        verify(postRepository).findByIdWithLock(postId);
+        verify(likePostRepository).existsByMemberAndPost(member, post);
+        verify(likePostRepository).save(any(PostLike.class));
     }
 }
