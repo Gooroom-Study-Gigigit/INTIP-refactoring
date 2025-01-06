@@ -16,7 +16,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -35,64 +37,47 @@ public class ReplyQueryService {
                 .map(ReplyListResponseDto::of).collect(Collectors.toList());
     }
 
+    // 정렬 기준을 정합니다.
+    private Sort sortReply(String sort){
+        if(sort.equals("date")){
+            return Sort.by(Sort.Direction.DESC, "id");
+        }
+        if(sort.equals("like")){
+            return Sort.by(Sort.Direction.DESC, "likeCount","id");
+        }
+        throw new MyException(MyErrorCode.WRONG_SORT_TYPE);
+    }
+
     // 게시글에 해당하는 댓글, 대댓글을 조회합니다.
-    public List<ReplyResponseDto> getReplies(Long postId, Member member) {
+    public List<ReplyResponseDto> getRepliesByPost(Long postId, Member member) {
         Post post = postRepository.findById(postId).orElseThrow(()->new MyException(MyErrorCode.POST_NOT_FOUND));
         List<Reply> replies = replyRepository.findAllNonDeletedOrHavingChildren(post);
         Set<Long> likedReplyIds = getMemberLikedIds(replies,member);
+
         return replies.stream()
                 .filter(reply -> reply.getReply() == null) // 부모댓글만 처리 대상에 포함.
                 .map(reply -> {
-                    List<ReReplyResponseDto> reReplies = replies.stream() //부모 댓글에 연결된 대댓글 찾기
-                            .filter(reReply -> reReply.getReply() != null && reReply.getReply().getId().equals(reply.getId()))
-                            .map(reReply -> {
-                                boolean isLiked = likedReplyIds.contains(reReply.getId()); // 내가 좋아요를 누른 댓글인지 확인
-                                String writer = writerName(reReply, post); // 대댓글 이름 처리
-                                long fireId = writer.equals("(알수없음)") ? 13 : reReply.getMember().getFireId(); // 댓글 프로필 이미지 id값
-                                return ReReplyResponseDto.of(reReply, writer, fireId, isLiked, hasAuthority(member, reReply));
-                            }).collect(Collectors.toList());
+                    List<ReReplyResponseDto> reReplies = findReReplies(reply, replies, likedReplyIds, post, member);
                     boolean isLiked = likedReplyIds.contains(reply.getId());
-                    String writer = writerName(reply,post); //댓글 이름 처리
+                    String writer = writerName(reply,post);
                     long fireId = writer.equals("(알수없음)") ? 13 : reply.getMember().getFireId(); // 댓글 프로필 이미지 id값
                     return ReplyResponseDto.of(reply, writer, fireId, isLiked, hasAuthority(member, reply), reReplies);
-                })
-                .collect(Collectors.toList());
+                }).toList();
     }
 
-    // 사용자가 자신의 댓글인지 여부를 판단하여, 수정, 또는 삭제 여부를 반환
-    public boolean hasAuthority(Member member, Reply reply){
-        boolean hasAuthority = false;
-        if(!reply.getIsDeleted() && member!=null && reply.getMember() != null && reply.getMember().getId().equals(member.getId())){
-            hasAuthority = true;
-        }
-        return hasAuthority;
-    }
-    // 댓글 작성자의 이름을 처리합니다. 삭제됨, 알수없음, 횃불이(글쓴이), 횃불이(번호), 본인 nickname
-    public String writerName(Reply reply,Post post){
-        String writer;
-        if(reply.getIsDeleted()){
-            writer="(삭제됨)";
-        }
-        else if(reply.getMember()==null){
-            writer="(알수없음)";
-        }
-        else{
-            if (reply.getAnonymous()) {
-                if(reply.getMember().equals(post.getMember())){
-                    writer = "횃불이(글쓴이)";
-                }
-                else {
-                    writer = "횃불이"+reply.getNumber();
-                }
-            }
-            else{
-                writer = reply.getMember().getNickname();
-            }
-        }
-        return writer;
+    // 부모 댓글에 작성된 대댓글을 추출합니다.
+    private List<ReReplyResponseDto> findReReplies(Reply parentReply, List<Reply> replies, Set<Long> likedReplyIds, Post post, Member member) {
+        return replies.stream()
+                .filter(reReply -> reReply.getReply() != null && reReply.getReply().getId().equals(parentReply.getId()))
+                .map(reReply -> {
+                    boolean isLiked = likedReplyIds.contains(reReply.getId()); // 내가 좋아요를 누른 댓글인지 확인
+                    String writer = writerName(reReply, post); // 대댓글 이름 처리
+                    long fireId = writer.equals("(알수없음)") ? 13 : reReply.getMember().getFireId(); // 댓글 프로필 이미지 id값
+                    return ReReplyResponseDto.of(reReply, writer, fireId, isLiked, hasAuthority(member, reReply));
+                }).toList();
     }
 
-    // 좋아요 개수가 많은 순으로 댓글을 조회합니다.
+    // 좋아요 개수가 많은 순으로 댓글을 조회합니다. ReReplyResponseDto 에는 reply, reReply 둘다 포함
     public List<ReReplyResponseDto> getBestReplies(Long postId, Member member){
         Post post = postRepository.findById(postId).orElseThrow(()->new MyException(MyErrorCode.POST_NOT_FOUND));
         List<Reply> replies = replyRepository.findBestReplies(post);
@@ -106,6 +91,32 @@ public class ReplyQueryService {
         }).collect(Collectors.toList());
     }
 
+    // 사용자가 자신의 댓글인지 여부를 판단하여, 수정, 또는 삭제 여부를 반환
+    private boolean hasAuthority(Member member, Reply reply){
+        boolean hasAuthority = false;
+        if(!reply.getIsDeleted() && member!=null && reply.getMember() != null && reply.getMember().getId().equals(member.getId())){
+            hasAuthority = true;
+        }
+        return hasAuthority;
+    }
+
+    // 댓글 작성자의 이름을 처리합니다. 삭제됨, 알수없음, 횃불이(글쓴이), 횃불이(번호), 본인 nickname
+    private String writerName(Reply reply,Post post){
+        if(reply.getIsDeleted()){
+            return "(삭제됨)";
+        }
+        if(reply.getMember()==null){
+            return "(알수없음)";
+        }
+        if(reply.getAnonymous()) {
+            if(reply.getMember().equals(post.getMember())){
+                return "횃불이(글쓴이)";
+            }
+            return "횃불이"+reply.getNumber();
+        }
+        return reply.getMember().getNickname();
+    }
+
     // 자신이 좋아요를 누른 댓글들을 id 들을 파악합니다.
     private Set<Long> getMemberLikedIds(List<Reply> replies, Member member){
         Set<Long> likedReplyIds = new HashSet<>();
@@ -117,19 +128,4 @@ public class ReplyQueryService {
         }
         return likedReplyIds;
     }
-
-    // 정렬 기준을 정합니다.
-    private Sort sortReply(String sort){
-        if(sort.equals("date")){
-            return Sort.by(Sort.Direction.DESC, "id");
-        }
-        else if(sort.equals("like")){
-            return Sort.by(Sort.Direction.DESC, "likeCount","id");
-        }
-        else{
-            throw new MyException(MyErrorCode.WRONG_SORT_TYPE);
-        }
-    }
-
-
 }

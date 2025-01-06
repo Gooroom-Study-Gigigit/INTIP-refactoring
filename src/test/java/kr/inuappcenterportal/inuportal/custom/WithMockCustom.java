@@ -11,5 +11,4 @@ import java.lang.annotation.*;
 public @interface  WithMockCustom {
     long id() default 1L;
     String schoolId() default "20202020";
-    String role() default "ROLE_USER";
 }
