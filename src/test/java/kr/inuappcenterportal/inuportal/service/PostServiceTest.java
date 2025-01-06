@@ -324,4 +324,54 @@ public class PostServiceTest {
         verify(likePostRepository).existsByMemberAndPost(member, post);
         verify(likePostRepository).save(any(PostLike.class));
     }
+
+    @Test
+    @DisplayName("게시글 좋아요 취소에 성공한다")
+    void likePost_Success_Cancel() {
+        // given
+        Long postId = 1L;
+        Long memberId = 2L;
+        Long authorId = 3L;
+
+        Member member = Member.builder()
+                .nickname("testMember")
+                .studentId("201900000")
+                .roles(Collections.singletonList("ROLE_USER"))
+                .build();
+        ReflectionTestUtils.setField(member, "id", memberId);
+
+        Member author = Member.builder()
+                .nickname("author")
+                .studentId("201900001")
+                .roles(Collections.singletonList("ROLE_USER"))
+                .build();
+        ReflectionTestUtils.setField(author, "id", authorId);
+
+        Post post = Post.builder()
+                .title("test title")
+                .content("test content")
+                .anonymous(false)
+                .category("수강신청")
+                .member(author)
+                .build();
+        ReflectionTestUtils.setField(post, "id", postId);
+
+        PostLike postLike = PostLike.builder()
+                .member(member)
+                .post(post)
+                .build();
+
+        when(postRepository.findByIdWithLock(postId)).thenReturn(Optional.of(post));
+        when(likePostRepository.existsByMemberAndPost(member, post)).thenReturn(true);
+        when(likePostRepository.findByMemberAndPost(member, post)).thenReturn(Optional.of(postLike));
+
+        // when
+        int result = postService.likePost(member, postId);
+
+        // then
+        assertEquals(-1, result);
+        verify(postRepository).findByIdWithLock(postId);
+        verify(likePostRepository).existsByMemberAndPost(member, post);
+        verify(likePostRepository).delete(postLike);
+    }
 }
