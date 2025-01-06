@@ -1,5 +1,6 @@
 package kr.inuappcenterportal.inuportal.domain.member.service;
 
+import kr.inuappcenterportal.inuportal.domain.member.enums.Role;
 import kr.inuappcenterportal.inuportal.global.config.TokenProvider;
 import kr.inuappcenterportal.inuportal.domain.member.model.Member;
 import kr.inuappcenterportal.inuportal.domain.member.dto.LoginDto;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,24 +32,27 @@ public class MemberService {
     private final TokenProvider tokenProvider;
     private final RedisService redisService;
 
-
-    @Transactional
     public void createMember(String studentId){
-        Member member = Member.builder().studentId(studentId).nickname(studentId).roles(Collections.singletonList("ROLE_USER")).build();
-        memberRepository.save(member);
+        memberRepository.save(Member.builder()
+                .studentId(studentId)
+                .nickname(studentId)
+                .roles(Collections.singletonList(Role.USER.getAuthority()))
+                .build()
+        );
     }
 
     private TokenDto createTokens(Member member) {
         String subject = member.getId().toString();
 
-        String accessToken = tokenProvider.createAccessToken(subject, member.getRoles());
-        String refreshToken = tokenProvider.createRefreshToken(subject);
+        String accessToken = tokenProvider.createAccessToken(subject, member.getRoles(), new Date());
+        String refreshToken = tokenProvider.createRefreshToken(subject, new Date());
 
         redisService.saveRefreshToken(TokenProvider.REDIS_PREFIX_REFRESH + subject, refreshToken, tokenProvider.getRefreshTokenExpirationSeconds());
 
         return TokenDto.of(accessToken, refreshToken);
     }
 
+    @Transactional
     public TokenDto schoolLogin(LoginDto loginDto){
         if (!memberRepository.existsByStudentId(loginDto.getStudentId())) {
             createMember(loginDto.getStudentId());
@@ -79,32 +84,24 @@ public class MemberService {
 
     @Transactional
     public Long updateMemberNicknameFireId(Long id, MemberUpdateNicknameDto memberUpdateNicknameDto){
-        Member member = memberRepository.findById(id).orElseThrow(
-                ()->new MyException(USER_NOT_FOUND));
-        if(memberUpdateNicknameDto.getNickname()!=null) {
-            if (memberRepository.existsByNickname(memberUpdateNicknameDto.getNickname())) {
-                throw new MyException(USER_DUPLICATE_NICKNAME);
-            }
-            if(memberUpdateNicknameDto.getNickname().trim().isEmpty()){
-                throw new MyException(NOT_BLANK_NICKNAME);
-            }
-            if(memberUpdateNicknameDto.getFireId()!=null){
-                member.updateNicknameAndFire(memberUpdateNicknameDto.getNickname(),memberUpdateNicknameDto.getFireId());
-            }
-            else{
-                member.updateNickName(memberUpdateNicknameDto.getNickname());
-            }
-        }else if(memberUpdateNicknameDto.getFireId()!=null){
-            member.updateFire(memberUpdateNicknameDto.getFireId());
+        Member member = memberRepository.findById(id)
+                .orElseThrow(() -> new MyException(USER_NOT_FOUND));
+        if (!member.getNickname().equals(memberUpdateNicknameDto.getNickname())) {
+            checkNickNameDuplicate(memberUpdateNicknameDto.getNickname());
         }
-        else{
-            throw new MyException(EMPTY_REQUEST);
-        }
+        member.updateNicknameAndFire(
+                memberUpdateNicknameDto.getNickname(),
+                memberUpdateNicknameDto.getFireId());
         return member.getId();
     }
 
     @Transactional
     public void delete(Member member){
+        String refreshTokenRedisKey = TokenProvider.REDIS_PREFIX_REFRESH + member.getId();
+        String refreshToken = redisService.getRefreshToken(refreshTokenRedisKey);
+        if (refreshToken != null) {
+            redisService.deleteRefreshToken(refreshTokenRedisKey);
+        }
         memberRepository.delete(member);
     }
 
@@ -114,5 +111,11 @@ public class MemberService {
 
     public List<MemberResponseDto> getAllMember(){
         return memberRepository.findAll().stream().map(MemberResponseDto::of).collect(Collectors.toList());
+    }
+
+    private void checkNickNameDuplicate(String nickName) {
+        if (memberRepository.existsByNickname(nickName)) {
+            throw new MyException(USER_DUPLICATE_NICKNAME);
+        }
     }
 }
