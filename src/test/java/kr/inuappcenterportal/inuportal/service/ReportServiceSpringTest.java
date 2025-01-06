@@ -7,7 +7,6 @@ import kr.inuappcenterportal.inuportal.domain.post.model.Post;
 import kr.inuappcenterportal.inuportal.domain.post.repository.PostRepository;
 import kr.inuappcenterportal.inuportal.domain.report.dto.ReportListResponseDto;
 import kr.inuappcenterportal.inuportal.domain.report.dto.ReportRequestDto;
-import kr.inuappcenterportal.inuportal.domain.report.dto.ReportResponseDto;
 import kr.inuappcenterportal.inuportal.domain.report.model.Report;
 import kr.inuappcenterportal.inuportal.domain.report.repository.ReportRepository;
 import kr.inuappcenterportal.inuportal.domain.report.service.ReportService;
@@ -15,8 +14,6 @@ import module.IntegrationSupportTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -24,8 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 
-@Transactional
-public class ReportServiceSpringTest extends IntegrationSupportTest {
+class ReportServiceSpringTest extends IntegrationSupportTest {
 
     @Autowired
     ReportService reportService;
@@ -37,7 +33,7 @@ public class ReportServiceSpringTest extends IntegrationSupportTest {
     @Autowired
     MemberRepository memberRepository;
 
-    //@Test
+    @Test
     @DisplayName("부적절해 보이는 게시물을 신고합니다.")
     void saveReport() {
         //given
@@ -57,7 +53,7 @@ public class ReportServiceSpringTest extends IntegrationSupportTest {
     }
 
 
-    //@Test
+    @Test
     @DisplayName("게시물 신고 목록을 조회합니다.")
     void getReportList() {
         //given
