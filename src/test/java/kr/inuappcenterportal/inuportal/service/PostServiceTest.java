@@ -24,18 +24,13 @@ import kr.inuappcenterportal.inuportal.domain.category.repository.CategoryReposi
 import kr.inuappcenterportal.inuportal.domain.post.repository.PostRepository;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyException;
 import kr.inuappcenterportal.inuportal.global.service.RedisService;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyErrorCode;
-
 
 import java.util.Collections;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -48,6 +43,9 @@ public class PostServiceTest {
 
     @Mock
     private PostCommonService postCommonService;
+
+    @Mock
+    private PostImageService postImageService;
 
     @Mock
     private PostRepository postRepository;
@@ -182,13 +180,44 @@ public class PostServiceTest {
         verify(postCommonService).validateMemberAuthorization(post, memberId);
     }
 
-    /*@Test
-    @DisplayName("게시글 도배 테스트")
-    public void postAttackTest() throws Exception{
-        Member member = Member.builder().nickname("testMember").studentId("201900000").roles(Collections.singletonList("ROLE_USER")).build();
-        PostDto postDto = PostDto.builder().title("title").content("content").anonymous(true).category("수강신청").build();
-        doThrow(new MyException(MyErrorCode.BLOCK_MANY_SAME_POST_REPLY)).when(redisService).blockRepeat(any(String.class));
-        *//*MyException myException = postService.saveOnlyPost(member,postDto);*//*
-        Assertions.assertThrows(MyException.class, ()->postService.saveOnlyPost(member,postDto));
-    }*/
+    @Test
+    @DisplayName("게시글 삭제에 성공한다")
+    void delete_Success() throws Exception {
+        // given
+        Long postId = 1L;
+        Long memberId = 1L;
+        Long imageCount = 2L;
+
+        Member member = Member.builder()
+                .nickname("testMember")
+                .studentId("201900000")
+                .roles(Collections.singletonList("ROLE_USER"))
+                .build();
+        ReflectionTestUtils.setField(member, "id", memberId);
+
+        Post post = Post.builder()
+                .title("test title")
+                .content("test content")
+                .anonymous(false)
+                .category("수강신청")
+                .member(member)
+                .imageCount(imageCount)
+                .build();
+        ReflectionTestUtils.setField(post, "id", postId);
+
+        when(postCommonService.findPostByIdOrThrow(postId)).thenReturn(post);
+        doNothing().when(postCommonService).validateMemberAuthorization(post, memberId);
+        doNothing().when(redisService).deleteImage(postId, imageCount);
+        doNothing().when(postImageService).deleteExistingImages(postId, imageCount);
+
+        // when
+        postService.delete(memberId, postId);
+
+        // then
+        verify(postCommonService).findPostByIdOrThrow(postId);
+        verify(postCommonService).validateMemberAuthorization(post, memberId);
+        verify(redisService).deleteImage(postId, imageCount);
+        verify(postImageService).deleteExistingImages(postId, imageCount);
+        verify(postRepository).delete(post);
+    }
 }
