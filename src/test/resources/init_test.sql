@@ -5,6 +5,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 TRUNCATE TABLE reply_like;
 TRUNCATE TABLE reply;
 TRUNCATE TABLE post;
+TRUNCATE TABLE member_roles;
 TRUNCATE TABLE member;
 
 -- FOREIGN_KEY_CHECKS 활성화
@@ -26,9 +27,28 @@ VALUES
     (11, '11111110', '댓글 좋아요 작성 유저 6'),
     (12, '12121212', '댓글 좋아요 작성 유저 7');
 
+INSERT INTO member_roles (member_id, roles)
+VALUES
+    (1, 'ROLE_USER'),
+    (2, 'ROLE_USER'),
+    (3, 'ROLE_USER'),
+    (4, 'ROLE_USER'),
+    (5, 'ROLE_USER'),
+    (6, 'ROLE_USER'),
+    (7, 'ROLE_USER'),
+    (8, 'ROLE_USER'),
+    (9, 'ROLE_USER'),
+    (10, 'ROLE_USER'),
+    (11, 'ROLE_USER'),
+    (12, 'ROLE_USER');
+
+
 -- Post 데이터 초기화
 INSERT INTO post (id, content, title, anonymous, member_id, category, number, image_count, create_date, modified_date)
-VALUES (1, '게시글 내용', '게시글 제목', true, 1, '카테고리', 24, 0, NOW(), NOW());
+VALUES
+    (1, '게시글 내용1', '게시글 제목1', true, 1, '카테고리', 24, 0, NOW(), NOW()),
+    (2, '게시글 내용2', '게시글 제목2', true, 2, '카테고리', 0, 0, NOW(), NOW());
+
 
 -- Reply 데이터 초기화 (parentReply가 NULL)
 INSERT INTO reply (id, content, anonymous, is_deleted, number, likeCount, post_id, member_id, parent_reply_id, create_date, modified_date)
@@ -44,7 +64,8 @@ VALUES
     (9, '댓글 9', true, false, 9, 7, 1, 5, NULL, NOW(), NOW()), -- 6번~12번 유저 좋아요 (7개)
     (10, '댓글 10', false, false, 10, 7, 1, 5, NULL, NOW(), NOW()), -- 6번~12번 유저 좋아요 (7개)
     (21, 'delete 댓글1', true, true, 21, 2, 1, 2, NULL, NOW(), NOW()), -- 7번, 8번 유저 좋아요 (2개)
-    (22, 'delete 댓글 2', false, true, 22, 2, 1, 2, NULL, NOW(), NOW()); -- 6번, 9번 유저 좋아요 (2개)
+    (22, 'delete 댓글 2', false, true, 22, 2, 1, 2, NULL, NOW(), NOW()), -- 6번, 9번 유저 좋아요 (2개)
+    (25, '게시글2 댓글', false, true, 22, 0, 2, 2, NULL, NOW(), NOW()); -- 6번, 9번 유저 좋아요 (2개)
 
 
 -- Reply 데이터 초기화 (parentReply 존재)
@@ -59,11 +80,11 @@ VALUES
     (17, '대댓글 7', false, false, 7, 2, 1, 2, 7, NOW(), NOW()), -- 10번, 12번 유저 좋아요 (2개)
     (18, '대댓글 8', true, false, 8, 2, 1, 2, 8, NOW(), NOW()), -- 6번, 7번 유저 좋아요 (2개)
     (19, '대댓글 9', false, false, 9, 2, 1, 1, 9, NOW(), NOW()), -- 8번, 9번 유저 좋아요 (2개)
-    (20, '대댓글 10', true, false, 10, 2, 1, 1, 10, NOW(), NOW()), -- 10번, 11번 유저 좋아요 (2개)
+    (20, '대댓글 10', true, false, 10, 2, 1, 1, 21, NOW(), NOW()), -- 10번, 11번 유저 좋아요 (2개)
     (23, 'delete 대댓글 1', true, true, 23, 2, 1, 2, 10, NOW(), NOW()), -- 12번, 11번 유저 좋아요 (2개)
     (24, 'delete 대댓글 2', false, true, 24, 2, 1, 2, 10, NOW(), NOW()); -- 6번, 10번 유저 좋아요 (2개)
 
--- ReplyLike 데이터 초기화 (1번부터 10번 댓글: 6번 ~ 12번 유저 모두 좋아요)
+-- ReplyLike 데이터 초기화 (1번부터 10번 댓글: 6번 ~ 12번 유저는 모두 좋아요)
 INSERT INTO reply_like (reply_id, member_id)
 VALUES
     (1, 6), (1, 7), (1, 8),
