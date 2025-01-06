@@ -2,9 +2,13 @@ package kr.inuappcenterportal.inuportal.service;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -18,6 +22,7 @@ import kr.inuappcenterportal.inuportal.domain.post.service.PostService;
 import kr.inuappcenterportal.inuportal.domain.post.dto.PostDto;
 import kr.inuappcenterportal.inuportal.domain.category.repository.CategoryRepository;
 import kr.inuappcenterportal.inuportal.domain.post.repository.PostRepository;
+import kr.inuappcenterportal.inuportal.global.exception.ex.MyException;
 import kr.inuappcenterportal.inuportal.global.service.RedisService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +34,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import kr.inuappcenterportal.inuportal.global.exception.ex.MyErrorCode;
+
 
 import java.util.Collections;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -129,6 +136,50 @@ public class PostServiceTest {
         verify(postCommonService, times(1)).findPostByIdOrThrow(postId);
         verify(postCommonService, times(1)).validateMemberAuthorization(post, memberId);
         verify(categoryRepository, times(1)).existsByCategory("newCategory");
+    }
+
+    @Test
+    @DisplayName("작성자가 다를 경우 게시글 수정에 실패한다.")
+    void updateOnlyPost_Fail_DifferentAuthor() {
+        // given
+        Long postId = 1L;
+        Long memberId = 2L;
+        Long anotherMemberId = 3L;
+
+        Member anotherMember = Member.builder()
+                .nickname("testMember")
+                .studentId("201900000")
+                .roles(Collections.singletonList("ROLE_USER"))
+                .build();
+
+        ReflectionTestUtils.setField(anotherMember, "id", anotherMemberId);
+
+        Post post = Post.builder()
+                .title("oldTitle")
+                .content("oldContent")
+                .anonymous(false)
+                .category("oldCategory")
+                .member(anotherMember)
+                .build();
+
+        PostDto postDto = PostDto.builder()
+                .title("newTitle")
+                .content("newContent")
+                .anonymous(true)
+                .category("newCategory")
+                .build();
+
+        when(categoryRepository.existsByCategory(postDto.getCategory())).thenReturn(true);
+        when(postCommonService.findPostByIdOrThrow(postId)).thenReturn(post);
+        doThrow(new MyException(MyErrorCode.HAS_NOT_POST_AUTHORIZATION))
+                .when(postCommonService).validateMemberAuthorization(post, memberId);
+
+        // when
+        assertThrows(MyException.class, () -> postService.updateOnlyPost(memberId, postId, postDto));
+
+        // then
+        verify(postCommonService).findPostByIdOrThrow(postId);
+        verify(postCommonService).validateMemberAuthorization(post, memberId);
     }
 
     /*@Test
