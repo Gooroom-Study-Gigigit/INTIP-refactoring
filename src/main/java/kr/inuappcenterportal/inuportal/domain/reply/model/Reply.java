@@ -75,6 +75,6 @@ public class Reply extends BaseTimeEntity {
     }
 
     public void downLike(){
-        this.likeCount += 1;
+        this.likeCount -= 1;
     }
 }

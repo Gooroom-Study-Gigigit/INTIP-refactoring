@@ -27,9 +27,8 @@ public class ReplyCommandService {
     // 게시글에 댓글을 작성합니다.
     public Long saveReply(Member member, ReplyDto replyDto, Long postId) throws NoSuchAlgorithmException {
         Post post = postRepository.findById(postId).orElseThrow(()->new MyException(MyErrorCode.POST_NOT_FOUND));
-        String hash = member.getId() + replyDto.getContent();
-        redisService.blockRepeat(hash);
-        long num = replyDto.getAnonymous() ? countAnonymousNumber(member,post) : 0; // 익명 댓글이 아니면 해당 로직을 실행시킬 이유가 없기에 조건을 건다.
+        blockRapidRequests(member, replyDto);
+        long num=  replyDto.getAnonymous() ? countAnonymousNumber(member,post) : 0; // 익명 댓글이 아니면 해당 로직을 실행시킬 이유가 없기에 조건을 건다.
         Reply reply = Reply.builder().content(replyDto.getContent()).anonymous(replyDto.getAnonymous()).member(member).post(post).number(num).build();
         replyRepository.save(reply);
         post.upReplyCount();
@@ -39,16 +38,22 @@ public class ReplyCommandService {
     // 댓글에 대댓글을 작성합니다. 대댓글에 대댓글 작성은 불가능합니다.
     public Long saveReReply(Member member, ReplyDto replyDto, Long replyId) throws NoSuchAlgorithmException {
         Reply reply = replyRepository.findById(replyId).orElseThrow(()->new MyException(MyErrorCode.REPLY_NOT_FOUND));
-        String hash = member.getId() + replyDto.getContent();
-        redisService.blockRepeat(hash);
+        blockRapidRequests(member, replyDto);
         if(reply.getReply()!=null){
             throw new MyException(MyErrorCode.NOT_REPLY_ON_REREPLY);
         }
         Post post = postRepository.findById(reply.getPost().getId()).orElseThrow(()->new MyException(MyErrorCode.POST_NOT_FOUND));
         long num = replyDto.getAnonymous() ? countAnonymousNumber(member,post) : 0; // 익명 댓글이 아니면 해당 로직을 실행시킬 이유가 없기에 조건을 건다.
         Reply reReply = Reply.builder().content(replyDto.getContent()).anonymous(replyDto.getAnonymous()).member(member).reply(reply).post(post).number(num).build();
+        replyRepository.save(reReply);
         post.upReplyCount();
-        return replyRepository.save(reReply).getId();
+        return reReply.getId();
+    }
+
+    // 빠르게 연속적인 댓글 작성을 block 합니다.
+    private void blockRapidRequests(Member member, ReplyDto replyDto) throws NoSuchAlgorithmException {
+        String hash = member.getId() + replyDto.getContent();
+        redisService.blockRepeat(hash);
     }
 
     // 익명 번호를 부여하기 위한 메서드 입니다.
@@ -57,7 +62,6 @@ public class ReplyCommandService {
         if (isAnonymousSamePostAuthor(post,member)) {
             return 0;
         }
-
         // 해당 멤버가 해당 게시물에 작성한 댓글 조회 후 번호 계산
         return replyRepository.findFirstByPostAndMember(post, member)
                 .map(Reply::getNumber) // 게시글에 댓글을 단 적이 있으면 번호 반환
@@ -79,10 +83,8 @@ public class ReplyCommandService {
         if(!reply.getMember().getId().equals(memberId)){
             throw new MyException(MyErrorCode.HAS_NOT_REPLY_AUTHORIZATION);
         }
-        else{
-            reply.update(replyDto.getContent(), replyDto.getAnonymous());
-            return reply.getId();
-        }
+        reply.update(replyDto.getContent(), replyDto.getAnonymous());
+        return reply.getId();
     }
 
     // 댓글을 삭제하는 메서드
@@ -93,9 +95,7 @@ public class ReplyCommandService {
         if(!reply.getMember().getId().equals(memberId)){
             throw new MyException(MyErrorCode.HAS_NOT_REPLY_AUTHORIZATION);
         }
-        else{
-            post.downReplyCount();
-            reply.onDelete();
-        }
+        post.downReplyCount();
+        reply.onDelete();
     }
 }
