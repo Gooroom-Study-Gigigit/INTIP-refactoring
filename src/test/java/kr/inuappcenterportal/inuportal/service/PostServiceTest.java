@@ -374,4 +374,39 @@ public class PostServiceTest {
         verify(likePostRepository).existsByMemberAndPost(member, post);
         verify(likePostRepository).delete(postLike);
     }
+
+    @Test
+    @DisplayName("자신의 게시글에 좋아요를 할 수 없다")
+    void likePost_Fail_SelfLike() {
+        // given
+        Long postId = 1L;
+        Long memberId = 2L;
+
+        Member member = Member.builder()
+                .nickname("testMember")
+                .studentId("201900000")
+                .roles(Collections.singletonList("ROLE_USER"))
+                .build();
+        ReflectionTestUtils.setField(member, "id", memberId);
+
+        Post post = Post.builder()
+                .title("test title")
+                .content("test content")
+                .anonymous(false)
+                .category("수강신청")
+                .member(member)
+                .build();
+        ReflectionTestUtils.setField(post, "id", postId);
+
+        when(postRepository.findByIdWithLock(postId)).thenReturn(Optional.of(post));
+
+        // when & then
+        MyException exception = assertThrows(MyException.class,
+                () -> postService.likePost(member, postId));
+
+        assertEquals(MyErrorCode.NOT_LIKE_MY_POST, exception.getErrorCode());
+        verify(postRepository).findByIdWithLock(postId);
+        verify(likePostRepository, never()).save(any());
+        verify(likePostRepository, never()).delete(any());
+    }
 }
