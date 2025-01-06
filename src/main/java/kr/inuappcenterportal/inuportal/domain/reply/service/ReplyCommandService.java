@@ -30,7 +30,7 @@ public class ReplyCommandService {
         blockRapidRequests(member, replyDto);
         long num=  replyDto.getAnonymous() ? countAnonymousNumber(member,post) : 0; // 익명 댓글이 아니면 해당 로직을 실행시킬 이유가 없기에 조건을 건다.
         Reply reply = Reply.builder().content(replyDto.getContent()).anonymous(replyDto.getAnonymous()).member(member).post(post).number(num).build();
-        reply = replyRepository.save(reply); // 가짜 객체를 위해 다시 변수로 받아준다.
+        replyRepository.save(reply);
         post.upReplyCount();
         return reply.getId();
     }
@@ -45,7 +45,7 @@ public class ReplyCommandService {
         Post post = postRepository.findById(reply.getPost().getId()).orElseThrow(()->new MyException(MyErrorCode.POST_NOT_FOUND));
         long num = replyDto.getAnonymous() ? countAnonymousNumber(member,post) : 0; // 익명 댓글이 아니면 해당 로직을 실행시킬 이유가 없기에 조건을 건다.
         Reply reReply = Reply.builder().content(replyDto.getContent()).anonymous(replyDto.getAnonymous()).member(member).reply(reply).post(post).number(num).build();
-        reReply = replyRepository.save(reReply);
+        replyRepository.save(reReply);
         post.upReplyCount();
         return reReply.getId();
     }

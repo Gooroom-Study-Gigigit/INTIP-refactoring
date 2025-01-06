@@ -24,7 +24,7 @@ public class ReplyLikeService {
 
     // 댓글에 좋아요 또는 좋아요 취소를 합니다.
     public LikeAction likeReply(Member member, Long replyId){
-        Reply reply = replyRepository.findById(replyId).orElseThrow(()->new MyException(MyErrorCode.REPLY_NOT_FOUND));
+        Reply reply = replyRepository.findByIdWithLock(replyId).orElseThrow(()->new MyException(MyErrorCode.REPLY_NOT_FOUND));
         if(isMemberSameReplyAuthor(reply, member)){
             throw new MyException(MyErrorCode.NOT_LIKE_MY_REPLY);
         }

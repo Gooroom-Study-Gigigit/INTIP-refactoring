@@ -1,10 +1,12 @@
 package kr.inuappcenterportal.inuportal.domain.reply.repository;
 
+import jakarta.persistence.LockModeType;
 import kr.inuappcenterportal.inuportal.domain.member.model.Member;
 import kr.inuappcenterportal.inuportal.domain.post.model.Post;
 import kr.inuappcenterportal.inuportal.domain.reply.model.Reply;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -18,4 +20,7 @@ public interface ReplyRepository extends JpaRepository<Reply,Long> {
     List<Reply> findAllNonDeletedOrHavingChildren(@Param("post") Post post);
     @Query("SELECT r FROM Reply r LEFT JOIN FETCH r.member m WHERE r.post = :post AND r.isDeleted = false AND r.likeCount>=5 ORDER BY r.likeCount DESC, r.id DESC  LIMIT 3")
     List<Reply> findBestReplies(@Param("post") Post post);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT r FROM Reply r WHERE r.id = :id")
+    Optional<Reply> findByIdWithLock(@Param("id") Long id);
 }
