@@ -1,21 +1,33 @@
 package kr.inuappcenterportal.inuportal.service;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Optional;
 import kr.inuappcenterportal.inuportal.domain.member.model.Member;
 import kr.inuappcenterportal.inuportal.domain.post.model.Post;
+import kr.inuappcenterportal.inuportal.domain.post.service.PostCommonService;
+import kr.inuappcenterportal.inuportal.domain.post.service.PostImageService;
 import kr.inuappcenterportal.inuportal.domain.post.service.PostService;
 import kr.inuappcenterportal.inuportal.domain.post.dto.PostDto;
 import kr.inuappcenterportal.inuportal.domain.category.repository.CategoryRepository;
 import kr.inuappcenterportal.inuportal.domain.post.repository.PostRepository;
 import kr.inuappcenterportal.inuportal.global.service.RedisService;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
@@ -28,6 +40,9 @@ public class PostServiceTest {
     private PostService postService;
 
     @Mock
+    private PostCommonService postCommonService;
+
+    @Mock
     private PostRepository postRepository;
 
     @Mock
@@ -38,7 +53,7 @@ public class PostServiceTest {
 
     @Test
     @DisplayName("새로운 게시글을 저장한다.")
-    void saveOnlyPostTest() throws Exception {
+    void saveOnlyPostTest_Success() throws Exception {
         // given
         Member member = Member.builder()
                 .nickname("testMember")
@@ -65,7 +80,55 @@ public class PostServiceTest {
         System.out.println("savedPostId = " + savedPostId);
 
         // then
-        assertThat(savedPostId).isEqualTo(1L);
+        assertEquals(savedPostId, savedPostId);
+        verify(redisService, times(1)).blockRepeat(anyString());
+        verify(postRepository, times(1)).save(any(Post.class));
+    }
+
+    @Test
+    @DisplayName("게시글을 성공적으로 수정한다.")
+    void updateOnlyPostTest_Success() {
+        // given
+        Long postId = 1L;
+        Long memberId = 2L;
+
+        Member member = Member.builder()
+                .nickname("testMember")
+                .studentId("201900000")
+                .roles(Collections.singletonList("ROLE_USER"))
+                .build();
+
+        Post post = Post.builder()
+                .title("oldTitle")
+                .content("oldContent")
+                .anonymous(false)
+                .category("oldCategory")
+                .member(member)
+                .build();
+
+        PostDto postDto = PostDto.builder()
+                .title("newTitle")
+                .content("newContent")
+                .anonymous(true)
+                .category("newCategory")
+                .build();
+
+        when(postCommonService.findPostByIdOrThrow(postId)).thenReturn(post);
+        doNothing().when(postCommonService).validateMemberAuthorization(post, memberId);
+        when(categoryRepository.existsByCategory("newCategory")).thenReturn(true);
+
+        // when
+        postService.updateOnlyPost(memberId, postId, postDto);
+
+        // then
+        assertThat(post.getTitle()).isEqualTo("newTitle");
+        assertThat(post.getContent()).isEqualTo("newContent");
+        assertThat(post.getAnonymous()).isTrue();
+        assertThat(post.getCategory()).isEqualTo("newCategory");
+
+        verify(postCommonService, times(1)).findPostByIdOrThrow(postId);
+        verify(postCommonService, times(1)).validateMemberAuthorization(post, memberId);
+        verify(categoryRepository, times(1)).existsByCategory("newCategory");
     }
 
     /*@Test
