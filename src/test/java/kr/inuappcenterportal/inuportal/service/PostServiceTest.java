@@ -58,7 +58,7 @@ public class PostServiceTest {
 
     @Test
     @DisplayName("새로운 게시글을 저장한다.")
-    void saveOnlyPostTest_Success() throws Exception {
+    void save_Success() throws Exception {
         // given
         Member member = Member.builder()
                 .nickname("testMember")
@@ -92,7 +92,7 @@ public class PostServiceTest {
 
     @Test
     @DisplayName("게시글을 성공적으로 수정한다.")
-    void updateOnlyPostTest_Success() {
+    void update_Success() {
         // given
         Long postId = 1L;
         Long memberId = 2L;
@@ -138,7 +138,7 @@ public class PostServiceTest {
 
     @Test
     @DisplayName("작성자가 다를 경우 게시글 수정에 실패한다.")
-    void updateOnlyPost_Fail_DifferentAuthor() {
+    void update_Fail_DifferentAuthor() {
         // given
         Long postId = 1L;
         Long memberId = 2L;
@@ -172,10 +172,8 @@ public class PostServiceTest {
         doThrow(new MyException(MyErrorCode.HAS_NOT_POST_AUTHORIZATION))
                 .when(postCommonService).validateMemberAuthorization(post, memberId);
 
-        // when
+        // when & then
         assertThrows(MyException.class, () -> postService.updateOnlyPost(memberId, postId, postDto));
-
-        // then
         verify(postCommonService).findPostByIdOrThrow(postId);
         verify(postCommonService).validateMemberAuthorization(post, memberId);
     }
@@ -196,8 +194,8 @@ public class PostServiceTest {
         ReflectionTestUtils.setField(member, "id", memberId);
 
         Post post = Post.builder()
-                .title("test title")
-                .content("test content")
+                .title("testTitle")
+                .content("testContent")
                 .anonymous(false)
                 .category("수강신청")
                 .member(member)
@@ -219,5 +217,44 @@ public class PostServiceTest {
         verify(redisService).deleteImage(postId, imageCount);
         verify(postImageService).deleteExistingImages(postId, imageCount);
         verify(postRepository).delete(post);
+    }
+
+    @Test
+    @DisplayName("작성자가 다를 경우 게시글 삭제에 실패한다")
+    void delete_Fail_DifferentAuthor() {
+        // given
+        Long postId = 1L;
+        Long memberId = 2L;
+        Long anotherMemberId = 3L;
+
+        Member anotherMember = Member.builder()
+                .nickname("anotherMember")
+                .studentId("201900000")
+                .roles(Collections.singletonList("ROLE_USER"))
+                .build();
+        ReflectionTestUtils.setField(anotherMember, "id", anotherMemberId);
+
+        Post post = Post.builder()
+                .title("testTitle")
+                .content("testContent")
+                .anonymous(false)
+                .category("수강신청")
+                .member(anotherMember)
+                .imageCount(0L)
+                .build();
+        ReflectionTestUtils.setField(post, "id", postId);
+
+        when(postCommonService.findPostByIdOrThrow(postId)).thenReturn(post);
+        doThrow(new MyException(MyErrorCode.HAS_NOT_POST_AUTHORIZATION))
+                .when(postCommonService).validateMemberAuthorization(post, memberId);
+
+        // when & then
+        MyException exception = assertThrows(MyException.class,
+                () -> postService.delete(memberId, postId));
+
+        assertEquals(MyErrorCode.HAS_NOT_POST_AUTHORIZATION, exception.getErrorCode());
+        verify(postCommonService).findPostByIdOrThrow(postId);
+        verify(postCommonService).validateMemberAuthorization(post, memberId);
+        verify(postRepository, never()).delete(post);
     }
 }
