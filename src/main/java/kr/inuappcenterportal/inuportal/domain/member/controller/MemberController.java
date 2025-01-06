@@ -61,17 +61,23 @@ public class MemberController {
         return ResponseEntity.ok(ResponseDto.of(memberId,"회원 닉네임/횃불이 이미지 변경 성공"));
     }
 
-    @Operation(summary = "회원 삭제",description = "url 헤더에 Authorization 토큰을 담아 보내주세요. 성공 시 삭제한 회원의 데이터베이스 아이디 값이 {data: id}으로 보내집니다.")
+    @Operation(summary = "회원 삭제",description = "Authorization 헤더에 토큰을 담아 보내주세요.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200",description = "회원삭제성공",content = @Content(schema = @Schema(implementation = ResponseDto.class)))
+            @ApiResponse(responseCode = "200",description = "회원 삭제 성공",content = @Content(schema = @Schema(implementation = ResponseDto.class)))
             ,@ApiResponse(responseCode = "404",description = "존재하지 않는 회원입니다.",content = @Content(schema = @Schema(implementation = ResponseDto.class)))
     })
     @DeleteMapping("")
-    public ResponseEntity<ResponseDto<Long>> delete(@AuthenticationPrincipal Member member){
+    public ResponseEntity<ResponseDto<?>> delete(@AuthenticationPrincipal Member member){
         log.info("회원 탈퇴 호출 id:{}",member.getId());
-        Long id = member.getId();
         memberService.delete(member);
-        return ResponseEntity.ok(ResponseDto.of(id,"회원삭제성공"));
+        ResponseCookie responseCookie = CookieUtil.createCookie(
+                TokenProvider.REFRESH_TOKEN_COOKIE_NAME,
+                null,
+                CookieUtil.COOKIE_EXPIRATION_DELETE
+        );
+        return ResponseEntity.status(OK)
+                .header(SET_COOKIE, responseCookie.toString())
+                .body(ResponseDto.of(null, "회원 삭제 성공"));
     }
 
     @Operation(summary = "로그인",description = "바디에 {studentId,password}을 json 형식으로 보내주세요. 토큰 유효시간은 10분, 리프레시 토큰의 유효시간은 7일입니다.")
