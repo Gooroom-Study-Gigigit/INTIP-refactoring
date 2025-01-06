@@ -33,6 +33,6 @@ RUN mkdir -p /app/images
 COPY ./build/libs/inu-portal-0.0.1-SNAPSHOT.jar app.jar
 
 # 애플리케이션 실행
-ENTRYPOINT ["java", "-jar", "/app.jar"]
-
+ENV SPRING_PROFILES_ACTIVE=dev
+CMD ["java", "-jar", "app.jar", "--spring.profiles.active=${SPRING_PROFILES_ACTIVE}"]
 
