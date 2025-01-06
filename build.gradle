@@ -52,8 +52,10 @@ dependencies {
     implementation 'com.oracle.database.jdbc:ojdbc11'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
     implementation 'org.springframework.boot:spring-boot-starter-actuator' // Spring Actuator
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus' // Prometheus
+
 }
 
 // 제외할 디렉토리 및 파일 패턴을 공통 변수로 선언

@@ -24,21 +24,24 @@ public class ReplyLikeService {
 
     // 댓글에 좋아요 또는 좋아요 취소를 합니다.
     public LikeAction likeReply(Member member, Long replyId){
-        Reply reply = replyRepository.findById(replyId).orElseThrow(()->new MyException(MyErrorCode.REPLY_NOT_FOUND));
+        Reply reply = replyRepository.findByIdWithLock(replyId).orElseThrow(()->new MyException(MyErrorCode.REPLY_NOT_FOUND));
         if(isMemberSameReplyAuthor(reply, member)){
             throw new MyException(MyErrorCode.NOT_LIKE_MY_REPLY);
         }
         Optional<ReplyLike> replyLike = likeReplyRepository.findByMemberAndReply(member, reply);
-        if(replyLike.isEmpty()){    // 멤버가 해당 댓글에 좋아요가 되어있지 않은 경우
+
+        // 멤버가 해당 댓글에 좋아요가 되어있지 않은 경우
+        if(replyLike.isEmpty()){
             ReplyLike newReplyLike = ReplyLike.builder().member(member).reply(reply).build();
             likeReplyRepository.save(newReplyLike);
             reply.upLike();
             return LikeAction.LIKE;
-        }else{    // 멤버가 해당 댓글에 좋아요가 되어있는 경우
-            likeReplyRepository.delete(replyLike.get());
-            reply.downLike();
-            return LikeAction.UNLIKE;
         }
+
+        // 멤버가 해당 댓글에 좋아요가 되어있는 경우
+        likeReplyRepository.delete(replyLike.get());
+        reply.downLike();
+        return LikeAction.UNLIKE;
     }
 
     // 댓글 글쓴이와 좋아요를 누른 유저가 동일한지 판별하는 메서드

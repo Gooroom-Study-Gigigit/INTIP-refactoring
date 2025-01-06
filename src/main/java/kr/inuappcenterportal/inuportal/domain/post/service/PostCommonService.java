@@ -22,4 +22,6 @@ public class PostCommonService {
             throw new MyException(MyErrorCode.HAS_NOT_POST_AUTHORIZATION);
         }
     }
+
+
 }
