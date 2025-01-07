@@ -108,6 +108,7 @@
 //        verify(memberService).refreshToken(any(String.class));
 //    }
 
+
 //    @Test
 //    @DisplayName("회원정보 가져오기 테스트")
 //    void getMemberTest() throws Exception {
@@ -156,10 +157,5 @@
 //
 //        verify(memberService).updateMemberNicknameFireId(any(Long.class),any(MemberUpdateNicknameDto.class));
 //    }
-//
-//
-//
-//
-//
-//
 //}
+
