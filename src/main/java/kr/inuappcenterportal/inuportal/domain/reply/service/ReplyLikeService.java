@@ -5,7 +5,7 @@ import kr.inuappcenterportal.inuportal.domain.reply.model.Reply;
 import kr.inuappcenterportal.inuportal.domain.reply.repository.ReplyRepository;
 import kr.inuappcenterportal.inuportal.domain.replylike.model.LikeAction;
 import kr.inuappcenterportal.inuportal.domain.replylike.model.ReplyLike;
-import kr.inuappcenterportal.inuportal.domain.replylike.repository.LikeReplyRepository;
+import kr.inuappcenterportal.inuportal.domain.replylike.repository.ReplyLikeRepository;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyErrorCode;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyException;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ import java.util.Optional;
 public class ReplyLikeService {
 
     private final ReplyRepository replyRepository;
-    private final LikeReplyRepository likeReplyRepository;
+    private final ReplyLikeRepository replyLikeRepository;
 
     // 댓글에 좋아요 또는 좋아요 취소를 합니다.
     public LikeAction likeReply(Member member, Long replyId){
@@ -28,18 +28,18 @@ public class ReplyLikeService {
         if(isMemberSameReplyAuthor(reply, member)){
             throw new MyException(MyErrorCode.NOT_LIKE_MY_REPLY);
         }
-        Optional<ReplyLike> replyLike = likeReplyRepository.findByMemberAndReply(member, reply);
+        Optional<ReplyLike> replyLike = replyLikeRepository.findByMemberAndReply(member, reply);
 
         // 멤버가 해당 댓글에 좋아요가 되어있지 않은 경우
         if(replyLike.isEmpty()){
             ReplyLike newReplyLike = ReplyLike.builder().member(member).reply(reply).build();
-            likeReplyRepository.save(newReplyLike);
+            replyLikeRepository.save(newReplyLike);
             reply.upLike();
             return LikeAction.LIKE;
         }
 
         // 멤버가 해당 댓글에 좋아요가 되어있는 경우
-        likeReplyRepository.delete(replyLike.get());
+        replyLikeRepository.delete(replyLike.get());
         reply.downLike();
         return LikeAction.UNLIKE;
     }

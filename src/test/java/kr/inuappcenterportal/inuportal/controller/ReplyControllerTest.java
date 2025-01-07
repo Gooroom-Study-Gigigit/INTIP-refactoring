@@ -1,7 +1,7 @@
 package kr.inuappcenterportal.inuportal.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.inuappcenterportal.inuportal.custom.WithMockCustom;
+import kr.inuappcenterportal.inuportal.util.WithMockCustom;
 import kr.inuappcenterportal.inuportal.domain.member.model.Member;
 import kr.inuappcenterportal.inuportal.domain.reply.controller.ReplyController;
 import kr.inuappcenterportal.inuportal.domain.reply.dto.ReplyDto;

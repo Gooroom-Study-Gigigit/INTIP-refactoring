@@ -1,0 +1,165 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    jdbc-url: jdbc:mysql://localhost:3306/inu_portal
+    username: root
+    password: test1234
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  cache:
+    type: redis
+
+  jpa:
+    open-in-view: false
+    show-sql: true
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+
+server: # 모니터링 용도
+  #port: 8080
+  tomcat:
+    mbeanregistry:
+      enabled: true
+
+management: # actuator
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+    jmx:
+      exposure:
+        exclude: "*"
+
+jwtSecret: 26937128d884a50fee8240ad91be35a05015241b05d101964fcbea11b6fe99457359597cf5bd57d941a582058364f8fc26268e0b6c94ab47e205ba17bca79a47 # jwtSecret
+refreshSecret: 722dbb65e45289cea32b6cc30e4d82042771ebe4aaf9f02860aad794c065310ead43aebb1b6eec152920e0c5741c786c9ba9e365108d604d4213f8b3989fcdb8 # refreshSecret
+jwtExpirationSeconds: 600
+refreshExpirationSeconds: 604800
+
+installPath: C:\\ # installPath
+imagePath: C:\\ # imagePath
+
+#oracle
+schoolDbUrl: jdbc:oracle
+schoolDbUser: user
+schoolDbPassword: user
+
+#aiUrl
+aiGenerateUrl: https:// # aiGenerateUrl
+aiRatingUrl: https:// # aiRatingUrl
+
+weatherKey: secret # weatherKey
+
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    jdbc-url: jdbc:mysql://debugging-database.cze4e26yqyzi.ap-northeast-2.rds.amazonaws.com:3306/inu_portal
+    username: admin
+    password: admin1234!!
+
+  data:
+    redis:
+      host: redis
+      port: 6379
+  cache:
+    type: redis # spring.cache.type
+
+  jpa:
+    open-in-view: false # spring.jpa.open-in-view
+    show-sql: true # spring.jpa.show-sql
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+
+server: # 모니터링 용도
+  #port: 8080
+  tomcat:
+    mbeanregistry:
+      enabled: true
+
+management: # actuator
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+    jmx:
+      exposure:
+        exclude: "*"
+
+jwtSecret: 26937128d884a50fee8240ad91be35a05015241b05d101964fcbea11b6fe99457359597cf5bd57d941a582058364f8fc26268e0b6c94ab47e205ba17bca79a47 # jwtSecret
+refreshSecret: 722dbb65e45289cea32b6cc30e4d82042771ebe4aaf9f02860aad794c065310ead43aebb1b6eec152920e0c5741c786c9ba9e365108d604d4213f8b3989fcdb8 # refreshSecret
+jwtExpirationSeconds: 600 # jwtExpirationSeconds
+refreshExpirationSeconds: 604800 # refreshExpirationSeconds
+
+installPath: C:\\ # installPath
+imagePath: C:\\ # imagePath
+
+#oracle
+schoolDbUrl: jdbc:oracle # schoolDbUrl
+schoolDbUser: user # schoolDbUser
+schoolDbPassword: user # schoolDbPassword
+
+#aiUrl
+aiGenerateUrl: https:// # aiGenerateUrl
+aiRatingUrl: https:// # aiRatingUrl
+
+weatherKey: secret # weatherKey
+
+
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+
+  spring:
+    datasource:
+      url: jdbc:h2:mem:testdb
+      driver-class-name: org.h2.Driver
+      username: sa
+      password:
+    h2:
+      console:
+        enabled: true
+
+    jpa:
+      hibernate:
+        ddl-auto: create
+      properties:
+        hibernate:
+          dialect: org.hibernate.dialect.H2Dialect
+          show_sql: true
+          format_sql: true
+          default_batch_fetch_size: 50
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  servlet: # 파일 크기 설정
+    multipart:
+      max-request-size: 10MB
+      max-file-size: 10MB
+
+jwtSecret: 26937128d884a50fee8240ad91be35a05015241b05d101964fcbea11b6fe99457359597cf5bd57d941a582058364f8fc26268e0b6c94ab47e205ba17bca79a47 # jwtSecret
+refreshSecret: 722dbb65e45289cea32b6cc30e4d82042771ebe4aaf9f02860aad794c065310ead43aebb1b6eec152920e0c5741c786c9ba9e365108d604d4213f8b3989fcdb8 # refreshSecret
+jwtExpirationSeconds: 600 # jwtExpirationSeconds
+refreshExpirationSeconds: 604800 # refreshExpirationSeconds
+
+installPath: C:\\ # installPath
+imagePath: C:\\ # imagePath
