@@ -28,7 +28,7 @@ import static kr.inuappcenterportal.inuportal.global.exception.ex.MyErrorCode.*;
 @Transactional(readOnly = true)
 public class MemberService {
     private final MemberRepository memberRepository;
-    private final SchoolLoginRepository schoolLoginRepository;
+    //private final SchoolLoginRepository schoolLoginRepository;
     private final TokenProvider tokenProvider;
     private final RedisService redisService;
 

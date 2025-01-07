@@ -7,15 +7,13 @@ import kr.inuappcenterportal.inuportal.domain.post.model.Post;
 import kr.inuappcenterportal.inuportal.domain.post.repository.PostRepository;
 import kr.inuappcenterportal.inuportal.domain.report.dto.ReportListResponseDto;
 import kr.inuappcenterportal.inuportal.domain.report.dto.ReportRequestDto;
-import kr.inuappcenterportal.inuportal.domain.report.dto.ReportResponseDto;
 import kr.inuappcenterportal.inuportal.domain.report.model.Report;
 import kr.inuappcenterportal.inuportal.domain.report.repository.ReportRepository;
 import kr.inuappcenterportal.inuportal.domain.report.service.ReportService;
+import module.IntegrationSupportTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -23,9 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 
-@SpringBootTest
-@Transactional
-public class ReportServiceSpringTest {
+class ReportServiceSpringTest extends IntegrationSupportTest {
 
     @Autowired
     ReportService reportService;
