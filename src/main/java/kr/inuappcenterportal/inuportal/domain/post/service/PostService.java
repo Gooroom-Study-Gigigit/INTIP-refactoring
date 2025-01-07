@@ -78,7 +78,7 @@ public class PostService {
         postRepository.delete(post);
     }
 
-    private void validateCategory(String category) {
+    public void validateCategory(String category) {
         if (!categoryRepository.existsByCategory(category)) {
             throw new MyException(MyErrorCode.CATEGORY_NOT_FOUND);
         }
