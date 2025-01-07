@@ -22,6 +22,8 @@ import java.lang.reflect.Field;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
+import static kr.inuappcenterportal.inuportal.util.TestReflectionUtil.setField;
+import static kr.inuappcenterportal.inuportal.util.TestReflectionUtil.setId;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -424,40 +426,4 @@ public class ReplyCommandServiceTest {
         verify(postRepository, times(1)).findById(postId);
     }
 
-    // 리플렉션으로 객체에 아이디값 주입
-    private void setId(Object target, Long id) {
-        try {
-            Field idField = target.getClass().getDeclaredField("id");
-            boolean isAccessible = idField.isAccessible();
-            idField.setAccessible(true);
-            idField.set(target, id);
-            idField.setAccessible(isAccessible); // 원래 상태로 복구
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException("ID 설정 중 오류 발생", e);
-        }
-    }
-
-    // 리플렉션으로 객체(상속)에 생성, 수정 시간 주입
-    private void setField(Object target, String fieldName, Object value) {
-        try {
-            Field field = getFieldFromClass(target.getClass(), fieldName); // 필드 가져오기
-            boolean isAccessible = field.isAccessible();
-            field.setAccessible(true); // 접근 제한 해제
-            field.set(target, value); // 값 세팅
-            field.setAccessible(isAccessible); // 다시 원래 접근 권한으로 세팅
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(fieldName + " 설정 중 오류 발생", e);
-        }
-    }
-
-    private Field getFieldFromClass(Class<?> clazz, String fieldName) throws NoSuchFieldException {
-        while (clazz != null) { // 바로 리턴 혹은 상위 클래스에서 clazz를 채우고 다시 try문에서 리턴
-            try {
-                return clazz.getDeclaredField(fieldName); // 현재 클래스에서 이름이 일치하는 필드 반환, 없으면 NoSuchFiledException
-            } catch (NoSuchFieldException e) {
-                clazz = clazz.getSuperclass(); // 현재 클래스에 필드가 없으면 상위 클래스에서 필드 검색
-            }
-        }
-        throw new NoSuchFieldException(fieldName + " 필드를 찾을 수 없습니다.");
-    }
 }

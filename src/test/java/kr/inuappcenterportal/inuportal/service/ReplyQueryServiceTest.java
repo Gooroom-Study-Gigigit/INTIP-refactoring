@@ -9,20 +9,19 @@ import kr.inuappcenterportal.inuportal.domain.reply.dto.ReplyResponseDto;
 import kr.inuappcenterportal.inuportal.domain.reply.model.Reply;
 import kr.inuappcenterportal.inuportal.domain.reply.repository.ReplyRepository;
 import kr.inuappcenterportal.inuportal.domain.reply.service.ReplyQueryService;
-import kr.inuappcenterportal.inuportal.domain.replylike.repository.LikeReplyRepository;
+import kr.inuappcenterportal.inuportal.domain.replylike.repository.ReplyLikeRepository;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyErrorCode;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyException;
+import kr.inuappcenterportal.inuportal.util.TestReflectionUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Sort;
 
-import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -39,7 +38,7 @@ public class ReplyQueryServiceTest {
     @Mock
     private ReplyRepository replyRepository;
     @Mock
-    private LikeReplyRepository likeReplyRepository;
+    private ReplyLikeRepository likeReplyRepository;
     @Mock
     private PostRepository postRepository;
 
@@ -51,28 +50,17 @@ public class ReplyQueryServiceTest {
         Long reply2Id = 2L;
         Long reply1LikeCount = 1L;
         Long reply2LikeCount = 2L;
+        Long replyNumber = 0L;
         Long postId = 1L;
         LocalDate createdDate = LocalDate.now();
         LocalDate modifiedDate = LocalDate.now();
         String sort = "date";
 
-        // 객체 생성 및 설정
+        // Member, Post, Reply 객체 생성
         Member member = Member.builder().build();
-        Post post = Post.builder().title("게시글 제목").member(member).build();
-        setId(post, postId);
-
-        // Reply 설정
-        Reply reply1 = Reply.builder().content("댓글1 내용").post(post).build();
-        setId(reply1, reply1Id);
-        setField(reply1, "likeCount", reply1LikeCount);
-        setField(reply1, "createDate", createdDate);
-        setField(reply1, "modifiedDate", modifiedDate);
-
-        Reply reply2 = Reply.builder().content("댓글2 내용").post(post).build();
-        setId(reply2, reply2Id);
-        setField(reply2, "likeCount", reply2LikeCount);
-        setField(reply2, "createDate", createdDate);
-        setField(reply2, "modifiedDate", modifiedDate);
+        Post post = createPost(postId,member);
+        Reply reply1 = createReply(reply1Id, post, member, "댓글1 내용",reply1LikeCount,createdDate, modifiedDate, true, null,replyNumber);
+        Reply reply2 = createReply(reply2Id, post, member, "댓글2 내용",reply2LikeCount,createdDate, modifiedDate, true, null,replyNumber);
 
         given(replyRepository.findAllByMemberAndIsDeletedFalse(member, Sort.by(Sort.Direction.DESC, "id")))
                 .willReturn(List.of(reply2, reply1));
@@ -87,9 +75,9 @@ public class ReplyQueryServiceTest {
                 () -> Assertions.assertEquals(reply1Id, result.get(1).getId(), "두 번째 댓글 ID 확인"),
                 () -> Assertions.assertEquals("댓글2 내용", result.get(0).getContent(), "첫 번째 댓글 내용 확인"),
                 () -> Assertions.assertEquals("댓글1 내용", result.get(1).getContent(), "두 번째 댓글 내용 확인"),
-                () -> Assertions.assertEquals("게시글 제목", result.get(0).getTitle(), "첫 번째 댓글 게시글 제목 확인"),
-                () -> Assertions.assertEquals("게시글 제목", result.get(1).getTitle(), "두 번째 댓글 게시글 제목 확인"),
-                () -> Assertions.assertTrue(result.get(0).getId() > result.get(1).getId(), "ID가 날짜 순으로 정렬되었는지 확인")
+                () -> Assertions.assertEquals(postId, result.get(0).getPostId(), "첫 번째 댓글 게시글 ID 확인"),
+                () -> Assertions.assertEquals(postId, result.get(1).getPostId(), "두 번째 댓글 게시글 ID 확인"),
+                () -> Assertions.assertTrue(isSortedByDate(result.get(0).getId(),result.get(1).getId()), "ID가 날짜 순으로 정렬되었는지 확인")
         );
         verify(replyRepository, times(1)).findAllByMemberAndIsDeletedFalse(member, Sort.by(Sort.Direction.DESC, "id"));
     }
@@ -102,28 +90,17 @@ public class ReplyQueryServiceTest {
         Long reply2Id = 2L;
         Long reply1LikeCount = 10L;
         Long reply2LikeCount = 20L;
+        Long replyNumber = 0L;
         Long postId = 1L;
         LocalDate createdDate = LocalDate.now();
         LocalDate modifiedDate = LocalDate.now();
         String sort = "like";
 
-        // 객체 생성 및 설정
+        // Member, Post, Reply 객체 생성
         Member member = Member.builder().build();
-        Post post = Post.builder().title("게시글 제목").member(member).build();
-        setId(post, postId);
-
-        // Reply 설정
-        Reply reply1 = Reply.builder().content("댓글1 내용").post(post).build();
-        setId(reply1, reply1Id);
-        setField(reply1, "likeCount", reply1LikeCount);
-        setField(reply1, "createDate", createdDate);
-        setField(reply1, "modifiedDate", modifiedDate);
-
-        Reply reply2 = Reply.builder().content("댓글2 내용").post(post).build();
-        setId(reply2, reply2Id);
-        setField(reply2, "likeCount", reply2LikeCount);
-        setField(reply2, "createDate", createdDate);
-        setField(reply2, "modifiedDate", modifiedDate);
+        Post post = createPost(postId,member);
+        Reply reply1 = createReply(reply1Id, post, member, "댓글1 내용",reply1LikeCount,createdDate, modifiedDate, true, null,replyNumber);
+        Reply reply2 = createReply(reply2Id, post, member, "댓글2 내용",reply2LikeCount,createdDate, modifiedDate, true, null,replyNumber);
 
         given(replyRepository.findAllByMemberAndIsDeletedFalse(member, Sort.by(Sort.Direction.DESC, "likeCount", "id")))
                 .willReturn(List.of(reply2, reply1));
@@ -138,14 +115,14 @@ public class ReplyQueryServiceTest {
                 () -> Assertions.assertEquals(reply1LikeCount, result.get(1).getLike(), "두 번째 댓글 좋아요 수 확인"),
                 () -> Assertions.assertEquals("댓글2 내용", result.get(0).getContent(), "첫 번째 댓글 내용 확인"),
                 () -> Assertions.assertEquals("댓글1 내용", result.get(1).getContent(), "두 번째 댓글 내용 확인"),
-                () -> Assertions.assertEquals("게시글 제목", result.get(0).getTitle(), "첫 번째 댓글 게시글 제목 확인"),
-                () -> Assertions.assertEquals("게시글 제목", result.get(1).getTitle(), "두 번째 댓글 게시글 제목 확인"),
+                () -> Assertions.assertEquals(postId, result.get(0).getPostId(), "첫 번째 댓글 게시글 ID 확인"),
+                () -> Assertions.assertEquals(postId, result.get(1).getPostId(), "두 번째 댓글 게시글 ID 확인"),
                 () -> Assertions.assertTrue(result.get(0).getId() > result.get(1).getId(), "ID가 날짜 순으로 정렬되었는지 확인")
         );
         verify(replyRepository, times(1)).findAllByMemberAndIsDeletedFalse(member, Sort.by(Sort.Direction.DESC, "likeCount", "id"));
     }
     @Test
-    @DisplayName("멤버가 작성한 모든 댓글 조회 - 잘못된 정렬로 조회(실패)")
+    @DisplayName("멤버가 작성한 모든 댓글 조회 - 잘못된 정렬 타입으로 조회(실패)")
     void getReplyByMemberFailTest(){
         // given
         String sort = "잘못된 정렬 타입";
@@ -164,7 +141,6 @@ public class ReplyQueryServiceTest {
         verify(replyRepository, times(0)).findAllByMemberAndIsDeletedFalse(member, Sort.by(Sort.Direction.DESC, "likeCount", "id"));
     }
 
-    // mock 객체로는 너무 어려운듯?
     @Test
     @DisplayName("게시글에 해당하는 댓글 조회 - 게시글에 해당하는 댓글 모두 조회(성공)")
     void getRepliesSuccessTest(){
@@ -177,49 +153,20 @@ public class ReplyQueryServiceTest {
         Long reply1Id = 1L;
         Long reply2Id = 2L;
         Long reReplyId = 3L;
+        Long reply1Number = 1L;
+        Long reply2Number = 2L;
         LocalDate createDate = LocalDate.now();
         LocalDate modifiedDate = LocalDate.now();
 
-        Member postMember = Member.builder().build();
-        setId(postMember,postMemberId);
-        Member reply1Member = Member.builder().build();
-        setId(reply1Member, reply1MemberId);
-        Member reReplyMember = Member.builder().nickname("대댓글 멤버").build();
-        setId(reReplyMember, reReplyMemberId);
-        Member reqMember = Member.builder().build();
-        setId(reqMember, reqMemberId);
-
-        Post post = Post.builder().member(postMember).build();
-        setId(post, postId);
-
-        Reply reply1 = Reply.builder()
-                .post(post)
-                .anonymous(true)
-                .member(reply1Member)
-                .number(1L)
-                .build();
-        setId(reply1, reply1Id);
-        setField(reply1,"createDate",createDate);
-        setField(reply1,"modifiedDate",modifiedDate);
-
-        Reply reply2 = Reply.builder()
-                .post(post)
-                .anonymous(true)
-                .number(2L)
-                .build();
-        setId(reply2, reply2Id);
-        setField(reply2,"createDate",createDate);
-        setField(reply2,"modifiedDate",modifiedDate);
-
-        Reply reReply = Reply.builder()
-                .post(post)
-                .reply(reply1)
-                .anonymous(false)
-                .member(reReplyMember)
-                .build();
-        setId(reReply, reReplyId);
-        setField(reReply,"createDate",createDate);
-        setField(reReply,"modifiedDate",modifiedDate);
+        // Member, Post, Reply 객체 생성
+        Member postMember = createMember(postMemberId,"게시글 작성자 멤버");
+        Member reply1Member = createMember(reply1MemberId,"댓글 1 작성자 멤버");
+        Member reReplyMember = createMember(reReplyMemberId, "대댓글 작성자 멤버");
+        Member reqMember = createMember(reqMemberId, "요청자 멤버");
+        Post post = createPost(postId, postMember);
+        Reply reply1 = createReply(reply1Id, post, reply1Member, "댓글1 내용",0L,createDate, modifiedDate, true, null,reply1Number);
+        Reply reply2 = createReply(reply2Id, post, null, "댓글2 내용",0L,createDate, modifiedDate, false, null,reply2Number);
+        Reply reReply = createReply(reReplyId, post, reReplyMember, "대댓글 내용",0L,createDate, modifiedDate, false, reply1,0L);
 
         when(postRepository.findById(postId)).thenReturn(Optional.of(post));
         when(replyRepository.findAllNonDeletedOrHavingChildren(post))
@@ -253,8 +200,8 @@ public class ReplyQueryServiceTest {
         Long postId = 100L; // 존재하지 않는 게시글 ID
         Long memberId = 1L;
 
-        Member member = Member.builder().build();
-        setId(member, memberId);
+        // Member 객체 생성
+        Member member = createMember(memberId,"요청자 멤버");
 
         when(postRepository.findById(postId)).thenReturn(Optional.empty()); // 게시글을 찾을 수 없도록 설정
 
@@ -278,52 +225,19 @@ public class ReplyQueryServiceTest {
         Long reReplyMemberId = 3L;
         Long reqMemberId = 2L;
         Long reply1Id = 1L;
-        Long reply2Id = 2L;
         Long reReplyId = 3L;
+        Long reply1LikeCount = 10L;
+        Long reReplyLikeCount = 5L;
         LocalDate createDate = LocalDate.now();
         LocalDate modifiedDate = LocalDate.now();
 
-        Member reply1Member = Member.builder().build();
-        setId(reply1Member, reply1MemberId);
-
-        Member reReplyMember = Member.builder().nickname("대댓글 작성자").build();
-        setId(reReplyMember, reReplyMemberId);
-
-        Member reqMember = Member.builder().build();
-        setId(reqMember, reqMemberId);
-
-        Post post = Post.builder().build();
-        setId(post, postId);
-
-        Reply reply1 = Reply.builder()
-                .post(post)
-                .anonymous(true)
-                .number(1L)
-                .member(reply1Member)
-                .build();
-        setId(reply1, reply1Id);
-        setField(reply1,"likeCount",10L);
-        setField(reply1,"createDate",createDate);
-        setField(reply1,"modifiedDate",modifiedDate);
-
-        Reply reply2 = Reply.builder()
-                .post(post)
-                .anonymous(true)
-                .build();
-        setId(reply2, reply2Id);
-        setField(reply2,"likeCount",4L);
-        setField(reply2,"createDate",createDate);
-        setField(reply2,"modifiedDate",modifiedDate);
-
-        Reply reReply = Reply.builder()
-                .post(post)
-                .anonymous(false)
-                .member(reReplyMember)
-                .build();
-        setId(reReply, reReplyId);
-        setField(reReply,"likeCount",5L);
-        setField(reReply,"createDate",createDate);
-        setField(reReply,"modifiedDate",modifiedDate);
+        // Member, Post, Reply 객체 생성
+        Member reply1Member = createMember(reply1MemberId,"댓글1 작성자 멤버");
+        Member reReplyMember = createMember(reReplyMemberId,"대댓글 작성자 멤버");
+        Member reqMember = createMember(reqMemberId, "요청자 멤버");
+        Post post = createPost(postId,Member.builder().build());
+        Reply reply1 = createReply(reply1Id, post, reply1Member, "댓글1 내용",reply1LikeCount,createDate, modifiedDate, true, null,1L);
+        Reply reReply = createReply(reReplyId, post, reReplyMember, "대댓글 내용",reReplyLikeCount,createDate, modifiedDate, false, reply1,0L);
 
         when(postRepository.findById(postId)).thenReturn(Optional.of(post));
         when(replyRepository.findBestReplies(post)).thenReturn(List.of(reply1,reReply));
@@ -341,7 +255,7 @@ public class ReplyQueryServiceTest {
                 () -> Assertions.assertEquals("횃불이1", result.get(0).getWriter(), "첫번째 베스트 댓글 이름 확인"),
                 () -> Assertions.assertEquals(reReplyId, result.get(1).getId(), "두 번째 베스트 댓글 ID 확인"),
                 () -> Assertions.assertFalse(result.get(1).getIsLiked(), "두 번째 베스트 댓글 좋아요 여부 확인"),
-                () -> Assertions.assertEquals("대댓글 작성자", result.get(1).getWriter(), "두번째 베스트 댓글 이름 확인")
+                () -> Assertions.assertEquals("대댓글 작성자 멤버", result.get(1).getWriter(), "두번째 베스트 댓글 이름 확인")
         );
         verify(postRepository, times(1)).findById(postId);
         verify(replyRepository, times(1)).findBestReplies(post);
@@ -371,40 +285,40 @@ public class ReplyQueryServiceTest {
         verify(likeReplyRepository, times(0)).findLikedReplyIdsByMember(eq(reqMember), anyList());
     }
 
-    // 리플렉션으로 객체에 아이디값 주입
-    private void setId(Object target, Long id) {
-        try {
-            Field idField = target.getClass().getDeclaredField("id");
-            boolean isAccessible = idField.isAccessible();
-            idField.setAccessible(true);
-            idField.set(target, id);
-            idField.setAccessible(isAccessible); // 원래 상태로 복구
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException("ID 설정 중 오류 발생", e);
-        }
+    // Member 객체 생성 메서드
+    public static Member createMember(Long id, String nickname) {
+        Member member = Member.builder().nickname(nickname).build();
+        TestReflectionUtil.setId(member, id);
+        return member;
     }
 
-    // 리플렉션으로 객체(상속)에 생성, 수정 시간 주입
-    private void setField(Object target, String fieldName, Object value) {
-        try {
-            Field field = getFieldFromClass(target.getClass(), fieldName); // 필드 가져오기
-            boolean isAccessible = field.isAccessible();
-            field.setAccessible(true); // 접근 제한 해제 
-            field.set(target, value); // 값 세팅
-            field.setAccessible(isAccessible); // 다시 원래 접근 권한으로 세팅
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(fieldName + " 설정 중 오류 발생", e);
-        }
+    // Post 객체 생성 메서드
+    public static Post createPost(Long id, Member member) {
+        Post post = Post.builder().member(member).build();
+        TestReflectionUtil.setId(post, id);
+        return post;
     }
 
-    private Field getFieldFromClass(Class<?> clazz, String fieldName) throws NoSuchFieldException {
-        while (clazz != null) { // 바로 리턴 혹은 상위 클래스에서 clazz를 채우고 다시 try문에서 리턴
-            try {
-                return clazz.getDeclaredField(fieldName); // 현재 클래스에서 이름이 일치하는 필드 반환, 없으면 NoSuchFiledException
-            } catch (NoSuchFieldException e) {
-                clazz = clazz.getSuperclass(); // 현재 클래스에 필드가 없으면 상위 클래스에서 필드 검색
-            }
-        }
-        throw new NoSuchFieldException(fieldName + " 필드를 찾을 수 없습니다.");
+    // Reply 객체 생성 메서드
+    public static Reply createReply(Long id, Post post, Member member, String content, Long likeCount,
+                                    LocalDate createDate, LocalDate modifiedDate, boolean isAnonymous, Reply parentReply, Long number) {
+        Reply reply = Reply.builder()
+                .post(post)
+                .member(member)
+                .number(number)
+                .content(content)
+                .anonymous(isAnonymous)
+                .reply(parentReply)
+                .build();
+        TestReflectionUtil.setId(reply, id);
+        if (likeCount != null) TestReflectionUtil.setField(reply, "likeCount", likeCount);
+        if (createDate != null) TestReflectionUtil.setField(reply, "createDate", createDate);
+        if (modifiedDate != null) TestReflectionUtil.setField(reply, "modifiedDate", modifiedDate);
+
+        return reply;
+    }
+
+    private boolean isSortedByDate(Long reply1Id, Long reply2Id) {
+        return reply1Id > reply2Id;
     }
 }
