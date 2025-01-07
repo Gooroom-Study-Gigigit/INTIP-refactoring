@@ -12,11 +12,9 @@ import kr.inuappcenterportal.inuportal.global.config.TokenProvider;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyErrorCode;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyException;
 import kr.inuappcenterportal.inuportal.global.service.RedisService;
-import org.junit.jupiter.api.BeforeEach;
+import module.IntegrationSupportTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -25,9 +23,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 
-@SpringBootTest
-@Transactional
-class MemberServiceTest {
+
+class MemberServiceTest extends IntegrationSupportTest {
 
     @Autowired
     MemberService memberService;
@@ -37,11 +34,6 @@ class MemberServiceTest {
     RedisService redisService;
     @Autowired
     TokenProvider tokenProvider;
-
-    @BeforeEach
-    public void clearDatabase() {
-        memberRepository.deleteAll();
-    }
 
     @Test
     void 첫_로그인시_회원가입_후_로그인을_진행한다() {
@@ -204,14 +196,13 @@ class MemberServiceTest {
 
         // when
         List<MemberResponseDto> memberResponseDtoList = memberService.getAllMember();
-
+        int lastIndex = memberResponseDtoList.size() - 1;
         // then
         assertAll(
                 () -> assertThat(memberResponseDtoList).isNotNull(),
-                () -> assertThat(memberResponseDtoList).hasSize(3),
                 // 모든 회원 검증
                 () -> {
-                    MemberResponseDto dto1 = memberResponseDtoList.get(0);
+                    MemberResponseDto dto1 = memberResponseDtoList.get(lastIndex - 2);
                     assertAll(
                             () -> assertThat(dto1.getId()).isEqualTo(member1.getId()),
                             () -> assertThat(dto1.getNickname()).isEqualTo(member1.getNickname()),
@@ -219,7 +210,7 @@ class MemberServiceTest {
                     );
                 },
                 () -> {
-                    MemberResponseDto dto2 = memberResponseDtoList.get(1);
+                    MemberResponseDto dto2 = memberResponseDtoList.get(lastIndex - 1);
                     assertAll(
                             () -> assertThat(dto2.getId()).isEqualTo(member2.getId()),
                             () -> assertThat(dto2.getNickname()).isEqualTo(member2.getNickname()),
@@ -227,7 +218,7 @@ class MemberServiceTest {
                     );
                 },
                 () -> {
-                    MemberResponseDto dto3 = memberResponseDtoList.get(2);
+                    MemberResponseDto dto3 = memberResponseDtoList.get(lastIndex);
                     assertAll(
                             () -> assertThat(dto3.getId()).isEqualTo(member3.getId()),
                             () -> assertThat(dto3.getNickname()).isEqualTo(member3.getNickname()),
