@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'jacoco'
     id 'org.springframework.boot' version '3.2.1'
     id 'io.spring.dependency-management' version '1.1.4'
     id "io.sentry.jvm.gradle" version "4.14.1"
@@ -14,6 +15,10 @@ java {
 
 repositories {
     mavenCentral()
+}
+
+jacoco {
+    toolVersion = "0.8.10"
 }
 
 
@@ -48,8 +53,38 @@ dependencies {
     implementation 'com.oracle.database.jdbc:ojdbc11'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    implementation 'org.springframework.boot:spring-boot-starter-actuator' // Spring Actuator
+    runtimeOnly 'io.micrometer:micrometer-registry-prometheus' // Prometheus
+
 }
+
+// 제외할 디렉토리 및 파일 패턴을 공통 변수로 선언
+ext.jacocoExcludes = [
+        "**/generated/**", // Querydsl Qfile
+        "**/dto/**",       // DTO 클래스
+        "**/exception/**", // 커스텀 예외
+        "**/config/**",    // 설정 파일
+]
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+tasks.named('jacocoTestReport') {
+    dependsOn(tasks.named('test')) // 테스트 실행 후 리포트 생성
+    reports {
+        xml.required = true // SonarQube를 위한 XML 리포트 생성
+        html.required = true // 사람이 읽기 쉬운 HTML 리포트 생성
+        csv.required = false // CSV 리포트는 비활성화
+    }
+    classDirectories.setFrom(
+            files(classDirectories.files.collect { dir ->
+                fileTree(dir) {
+                    exclude jacocoExcludes // 리포트 생성에서 제외할 디렉토리와 파일 설정
+                }
+            })
+    )
+
+    // finalizedBy tasks.named('jacocoTestCoverageVerification') // 리포트 생성 후 검증
 }
