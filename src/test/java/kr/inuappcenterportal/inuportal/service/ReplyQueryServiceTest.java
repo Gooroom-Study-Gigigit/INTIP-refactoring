@@ -228,6 +228,7 @@ public class ReplyQueryServiceTest {
         Long reReplyId = 3L;
         Long reply1LikeCount = 10L;
         Long reReplyLikeCount = 5L;
+        Long reply1Number = 1L;
         LocalDate createDate = LocalDate.now();
         LocalDate modifiedDate = LocalDate.now();
 
@@ -236,7 +237,7 @@ public class ReplyQueryServiceTest {
         Member reReplyMember = createMember(reReplyMemberId,"대댓글 작성자 멤버");
         Member reqMember = createMember(reqMemberId, "요청자 멤버");
         Post post = createPost(postId,Member.builder().build());
-        Reply reply1 = createReply(reply1Id, post, reply1Member, "댓글1 내용",reply1LikeCount,createDate, modifiedDate, true, null,1L);
+        Reply reply1 = createReply(reply1Id, post, reply1Member, "댓글1 내용",reply1LikeCount,createDate, modifiedDate, true, null,reply1Number);
         Reply reReply = createReply(reReplyId, post, reReplyMember, "대댓글 내용",reReplyLikeCount,createDate, modifiedDate, false, reply1,0L);
 
         when(postRepository.findById(postId)).thenReturn(Optional.of(post));
