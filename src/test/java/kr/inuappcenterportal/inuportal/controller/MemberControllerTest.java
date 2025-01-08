@@ -1,13 +1,14 @@
-package kr.inuappcenterportal.inuportal.domain.member.controller;
+package kr.inuappcenterportal.inuportal.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import kr.inuappcenterportal.inuportal.domain.member.controller.MemberController;
 import kr.inuappcenterportal.inuportal.domain.member.dto.LoginDto;
 import kr.inuappcenterportal.inuportal.domain.member.dto.MemberResponseDto;
 import kr.inuappcenterportal.inuportal.domain.member.dto.MemberUpdateNicknameDto;
 import kr.inuappcenterportal.inuportal.domain.member.dto.TokenDto;
-import kr.inuappcenterportal.inuportal.domain.member.fixture.MemberFixture;
+import kr.inuappcenterportal.inuportal.util.fixture.MemberFixture;
 import kr.inuappcenterportal.inuportal.domain.member.model.Member;
 import kr.inuappcenterportal.inuportal.domain.member.service.MemberService;
 

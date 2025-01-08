@@ -5,7 +5,7 @@ import kr.inuappcenterportal.inuportal.domain.member.dto.LoginDto;
 import kr.inuappcenterportal.inuportal.domain.member.dto.MemberResponseDto;
 import kr.inuappcenterportal.inuportal.domain.member.dto.MemberUpdateNicknameDto;
 import kr.inuappcenterportal.inuportal.domain.member.dto.TokenDto;
-import kr.inuappcenterportal.inuportal.domain.member.fixture.MemberFixture;
+import kr.inuappcenterportal.inuportal.util.fixture.MemberFixture;
 import kr.inuappcenterportal.inuportal.domain.member.model.Member;
 import kr.inuappcenterportal.inuportal.domain.member.repository.MemberRepository;
 import kr.inuappcenterportal.inuportal.domain.member.service.MemberService;
