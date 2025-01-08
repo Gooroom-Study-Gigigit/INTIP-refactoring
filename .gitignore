@@ -9,6 +9,7 @@ application.properties
 **/application.yml
 
 
+
 .idea
 # User-specific stuff
 .idea/**/workspace.xml

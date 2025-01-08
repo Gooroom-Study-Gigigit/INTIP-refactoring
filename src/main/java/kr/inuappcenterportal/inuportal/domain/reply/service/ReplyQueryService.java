@@ -8,7 +8,7 @@ import kr.inuappcenterportal.inuportal.domain.reply.dto.ReplyListResponseDto;
 import kr.inuappcenterportal.inuportal.domain.reply.dto.ReplyResponseDto;
 import kr.inuappcenterportal.inuportal.domain.reply.model.Reply;
 import kr.inuappcenterportal.inuportal.domain.reply.repository.ReplyRepository;
-import kr.inuappcenterportal.inuportal.domain.replylike.repository.LikeReplyRepository;
+import kr.inuappcenterportal.inuportal.domain.replylike.repository.ReplyLikeRepository;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyErrorCode;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyException;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +29,7 @@ public class ReplyQueryService {
 
     private final ReplyRepository replyRepository;
     private final PostRepository postRepository;
-    private final LikeReplyRepository likeReplyRepository;
+    private final ReplyLikeRepository likeReplyRepository;
 
     // 해당 멤버가 작성한 모든 댓글을 조회합니다.
     public List<ReplyListResponseDto> getReplyByMember(Member member,String sort){
