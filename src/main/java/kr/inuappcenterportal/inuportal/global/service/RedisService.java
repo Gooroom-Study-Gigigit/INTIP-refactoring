@@ -168,14 +168,16 @@ public class RedisService {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         byte[] digest = md.digest(hash.getBytes(StandardCharsets.UTF_8));
         String sha256 = DatatypeConverter.printHexBinary(digest).toLowerCase();
-        if(redisTemplate.hasKey(hash)){
+        if(redisTemplate.hasKey(sha256)){
             throw new MyException(MyErrorCode.BLOCK_MANY_SAME_POST_REPLY);
         }
         else{
-            redisTemplate.opsForValue().set(hash,"hash");
-            redisTemplate.expire(hash,20, TimeUnit.SECONDS);
+            redisTemplate.opsForValue().set(sha256,"hash");
+            redisTemplate.expire(sha256,20, TimeUnit.SECONDS);
         }
     }
+
+
 
     public void saveRefreshToken(String key, String refreshToken, long refreshTokenExpirationSeconds) {
         redisTemplate.opsForValue().set(key, refreshToken, refreshTokenExpirationSeconds, TimeUnit.SECONDS);

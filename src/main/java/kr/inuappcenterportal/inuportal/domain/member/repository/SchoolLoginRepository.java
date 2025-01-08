@@ -6,11 +6,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
-@Component
+//@Component
 @Slf4j
 public class SchoolLoginRepository {
 
-    @Autowired
+    //@Autowired
     @Qualifier("oracleJdbc")
     private JdbcTemplate jdbcTemplate;
 

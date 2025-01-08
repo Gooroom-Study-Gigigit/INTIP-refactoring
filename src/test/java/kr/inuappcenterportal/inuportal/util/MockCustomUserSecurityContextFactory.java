@@ -1,4 +1,4 @@
-package kr.inuappcenterportal.inuportal.custom;
+package kr.inuappcenterportal.inuportal.util;
 
 import kr.inuappcenterportal.inuportal.domain.member.model.Member;
 import org.mockito.Mockito;

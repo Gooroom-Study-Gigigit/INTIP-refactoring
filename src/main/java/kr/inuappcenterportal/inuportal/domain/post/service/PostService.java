@@ -78,7 +78,7 @@ public class PostService {
         postRepository.delete(post);
     }
 
-    private void validateCategory(String category) {
+    public void validateCategory(String category) {
         if (!categoryRepository.existsByCategory(category)) {
             throw new MyException(MyErrorCode.CATEGORY_NOT_FOUND);
         }
@@ -118,7 +118,7 @@ public class PostService {
                 writer = post.getMember().getNickname();
             }
         }
-        return  PostResponseDto.of(post,writer,fireId,isLiked,isScraped,hasAuthority,replyQueryService.getReplies(postId,member),replyQueryService.getBestReplies(postId,member));
+        return  PostResponseDto.of(post,writer,fireId,isLiked,isScraped,hasAuthority,replyQueryService.getRepliesByPost(postId,member),replyQueryService.getBestReplies(postId,member));
     }
 
     @Transactional(readOnly = true)

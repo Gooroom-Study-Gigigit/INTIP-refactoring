@@ -1,4 +1,4 @@
-package kr.inuappcenterportal.inuportal.custom;
+package kr.inuappcenterportal.inuportal.util;
 
 import org.springframework.security.test.context.support.WithSecurityContext;
 
@@ -11,5 +11,4 @@ import java.lang.annotation.*;
 public @interface  WithMockCustom {
     long id() default 1L;
     String schoolId() default "20202020";
-    String role() default "ROLE_USER";
 }

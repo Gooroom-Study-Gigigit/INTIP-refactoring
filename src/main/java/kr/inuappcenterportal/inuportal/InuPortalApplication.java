@@ -15,9 +15,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @OpenAPIDefinition(
-        servers = {
-                @Server(url = "http://localhost:8080",description = "Local URL")
-        },
         security = {
                 @SecurityRequirement(name = "Authorization")
         }

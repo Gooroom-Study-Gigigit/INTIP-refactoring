@@ -57,7 +57,6 @@ public class ReplyController {
     public ResponseEntity<ResponseDto<Long>> updateReply(@AuthenticationPrincipal Member member, @Valid@RequestBody ReplyDto replyDto, @Parameter(name = "replyId",description = "수정할 댓글의 id",in = ParameterIn.PATH)@PathVariable Long replyId){
         log.info("댓글 수정 호출 id:{}", replyId);
         return ResponseEntity.ok(ResponseDto.of(replyCommandService.updateReply(member.getId(), replyDto, replyId),"댓글 수정 성공"));
-
     }
 
     @Operation(summary = "댓글 삭제",description = "헤더 Auth에 발급받은 토큰을 보내주세요. url 파라미터에 댓글의 id를 보내주세요. 성공 시 작성된 댓글의 데이터베이스 아이디 값이 {data: id}으로 보내집니다.")
@@ -86,16 +85,15 @@ public class ReplyController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ResponseDto.of(replyCommandService.saveReReply(member, replyDto,replyId),"대댓글 저장 성공"));
     }
 
-    @Operation(summary = "댓글 좋아요 여부 변경",description = "헤더 Auth에 발급받은 토큰을, url 파라미터에 댓글의 id를 보내주세요. 좋아요 시 {data:1}, 좋아요 취소 시 {data:-1}입니다.")
+    @Operation(summary = "댓글 좋아요 여부 변경",description = "헤더 Auth에 발급받은 토큰을, url 파라미터에 댓글의 id를 보내주세요. 좋아요 시 {data:LIKE}, 좋아요 취소 시 {data:UNLIKE}입니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200",description = "게시글 좋아요 성공",content = @Content(schema = @Schema(implementation = ResponseDto.class)))
             ,@ApiResponse(responseCode = "404",description = "존재하지 않는 회원입니다. / 존재하지 않는 댓글입니다.",content = @Content(schema = @Schema(implementation = ResponseDto.class)))
             ,@ApiResponse(responseCode = "400",description = "자신의 댓글에는 추천을 할 수 없습니다.",content = @Content(schema = @Schema(implementation = ResponseDto.class)))
     })
     @PutMapping("/{replyId}/like")
-    public ResponseEntity<ResponseDto<LikeAction>> likePost(@AuthenticationPrincipal Member member, @Parameter(name = "replyId",description = "좋아요 또는 좋아요 취소 할 댓글의 id",in = ParameterIn.PATH)@PathVariable Long replyId){
+    public ResponseEntity<ResponseDto<LikeAction>> likeReply(@AuthenticationPrincipal Member member, @Parameter(name = "replyId",description = "좋아요 또는 좋아요 취소 할 댓글의 id",in = ParameterIn.PATH)@PathVariable Long replyId){
         log.info("댓글 좋아요 여부 변경 호출 id:{}",replyId);
-        return ResponseEntity.ok(ResponseDto.of(replyLikeService.likeReply(member,replyId),"게시글 좋아요 여부 변경성공"));
+        return ResponseEntity.ok(ResponseDto.of(replyLikeService.likeReply(member,replyId),"댓글 좋아요 여부 변경성공"));
     }
-
 }

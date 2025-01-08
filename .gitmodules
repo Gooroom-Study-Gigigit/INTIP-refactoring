@@ -1,0 +1,3 @@
+[submodule "seungjin-yml-importer"]
+	path = seungjin-yml-importer
+	url = https://github.com/Gooroom-Study-Gigigit/seungjin-yml-importer.git
