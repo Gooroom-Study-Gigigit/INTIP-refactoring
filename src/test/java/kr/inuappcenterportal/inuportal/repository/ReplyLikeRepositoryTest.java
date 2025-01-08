@@ -8,13 +8,11 @@ import kr.inuappcenterportal.inuportal.domain.reply.model.Reply;
 import kr.inuappcenterportal.inuportal.domain.reply.repository.ReplyRepository;
 import kr.inuappcenterportal.inuportal.domain.replylike.model.ReplyLike;
 import kr.inuappcenterportal.inuportal.domain.replylike.repository.ReplyLikeRepository;
+import module.IntegrationSupportTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,10 +20,8 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest
-@ActiveProfiles("test")
-@Transactional
-public class ReplyLikeRepositoryTest {
+
+public class ReplyLikeRepositoryTest extends IntegrationSupportTest {
 
     @Autowired
     private ReplyRepository replyRepository;
