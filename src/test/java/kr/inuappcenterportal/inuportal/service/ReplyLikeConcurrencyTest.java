@@ -7,7 +7,6 @@ import kr.inuappcenterportal.inuportal.domain.post.repository.PostRepository;
 import kr.inuappcenterportal.inuportal.domain.reply.model.Reply;
 import kr.inuappcenterportal.inuportal.domain.reply.repository.ReplyRepository;
 import kr.inuappcenterportal.inuportal.domain.reply.service.ReplyLikeService;
-import kr.inuappcenterportal.inuportal.domain.replylike.repository.LikeReplyRepository;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyErrorCode;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyException;
 import org.junit.jupiter.api.Assertions;
@@ -16,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.jdbc.Sql;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,19 +25,7 @@ import java.util.concurrent.Executors;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@Sql(statements = {
-        "SET FOREIGN_KEY_CHECKS=0;",
-        "TRUNCATE TABLE reply_like;",
-        "TRUNCATE TABLE reply;",
-        "TRUNCATE TABLE post;",
-        "TRUNCATE TABLE member;",
-        "SET FOREIGN_KEY_CHECKS=1;"
-}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD
-)
-public class LikeReplyConcurrencyTest {
-
-    @Autowired
-    private LikeReplyRepository likeReplyRepository;
+public class ReplyLikeConcurrencyTest {
 
     @Autowired
     private ReplyLikeService replyLikeService;
@@ -53,16 +39,20 @@ public class LikeReplyConcurrencyTest {
     @Autowired
     private PostRepository postRepository;
 
+    Member replyMember;
+    Post post;
+    Reply reply;
+
     @BeforeEach
     public void before(){
-        Member replyMember = Member.builder()
+        replyMember = Member.builder()
                 .studentId("20202020")
                 .nickname("강형준")
                 .roles(Collections.singletonList("ROLE_USER"))
                 .build();
         memberRepository.save(replyMember);
 
-        Post post = Post.builder()
+        post = Post.builder()
                 .title("첫 번째 게시글")
                 .content("게시글 내용")
                 .anonymous(true)
@@ -71,7 +61,7 @@ public class LikeReplyConcurrencyTest {
                 .build();
         postRepository.save(post);
 
-        Reply reply = Reply.builder()
+        reply = Reply.builder()
                 .content("댓글 내용")
                 .anonymous(true)
                 .member(replyMember)
@@ -85,8 +75,6 @@ public class LikeReplyConcurrencyTest {
         int threadCount = 100;
         ExecutorService executorService = Executors.newFixedThreadPool(32);
         CountDownLatch latch = new CountDownLatch(threadCount);
-
-        Reply reply = replyRepository.findById(1L).orElseThrow();
 
         List<Member> members = new ArrayList<>();
         for (int i = 0; i < threadCount; i++) {

@@ -1,4 +1,4 @@
-package kr.inuappcenterportal.inuportal.custom;
+package kr.inuappcenterportal.inuportal.util;
 
 import org.springframework.security.test.context.support.WithSecurityContext;
 

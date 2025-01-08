@@ -16,7 +16,7 @@ import java.util.Optional;
 public interface ReplyRepository extends JpaRepository<Reply,Long> {
     List<Reply> findAllByMemberAndIsDeletedFalse(Member member, Sort sort);
     Optional<Reply> findFirstByPostAndMember(Post post, Member member);
-    @Query("SELECT r FROM Reply r LEFT JOIN FETCH r.member m LEFT JOIN FETCH m.roles WHERE r.post = :post AND (r.isDeleted = false OR EXISTS ( SELECT 1 FROM Reply rr WHERE rr.reply = r AND rr.isDeleted = false )) ")
+    @Query("SELECT r FROM Reply r LEFT JOIN FETCH r.member m  WHERE r.post = :post AND (r.isDeleted = false OR EXISTS ( SELECT 1 FROM Reply rr WHERE rr.reply = r AND rr.isDeleted = false )) ")
     List<Reply> findAllNonDeletedOrHavingChildren(@Param("post") Post post);
     @Query("SELECT r FROM Reply r LEFT JOIN FETCH r.member m WHERE r.post = :post AND r.isDeleted = false AND r.likeCount>=5 ORDER BY r.likeCount DESC, r.id DESC  LIMIT 3")
     List<Reply> findBestReplies(@Param("post") Post post);
