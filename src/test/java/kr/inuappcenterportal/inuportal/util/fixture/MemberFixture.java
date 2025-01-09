@@ -1,4 +1,4 @@
-package kr.inuappcenterportal.inuportal.domain.member.fixture;
+package kr.inuappcenterportal.inuportal.util.fixture;
 
 import kr.inuappcenterportal.inuportal.domain.member.dto.LoginDto;
 import kr.inuappcenterportal.inuportal.domain.member.enums.Role;
