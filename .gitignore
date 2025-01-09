@@ -8,6 +8,12 @@
 application.properties
 application.yml
 
+# 성능 테스트 관련 파일
+target
+
+# Ignore macOS system files
+.DS_Store
+
 
 .idea
 # User-specific stuff
