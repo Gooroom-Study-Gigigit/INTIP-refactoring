@@ -1,0 +1,102 @@
+name: CI 자동화
+
+on:
+  pull_request:
+    branches: [ "dev", "main" ]
+
+permissions: write-all
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
+      TAG: latest
+
+    steps:
+      - name: 리포지토리 소스 코드 가져오기
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.SUBMODULE_TOKEN }}
+          submodules: recursive
+
+      - name: JDK 17을 설치합니다
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 성능 향상을 위한 Gradle 패키지 캐싱하기
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
+
+      - name: Gradle 명령 실행을 위한 권한을 부여합니다
+        run: chmod +x gradlew
+
+      - name: Gradle build를 수행합니다
+        run: ./gradlew build -Dspring.profiles.active=dev
+
+      - name: 테스트 결과를 PR에 코멘트로 등록합니다
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: '**/build/test-results/test/TEST-*.xml'
+
+      - name: 테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
+        uses: mikepenz/action-junit-report@v3
+        if: always()
+        with:
+          report_paths: '**/build/test-results/test/TEST-*.xml'
+          token: ${{ github.token }}
+
+      - name: 테스트 커버리지를 PR에 코멘트로 등록합니다
+        id: jacoco
+        uses: Madrapps/jacoco-report@v1.7.1
+        with:
+          title: "📈 테스트 커버리지 리포트입니다"
+          paths: ${{ github.workspace }}/build/reports/jacoco/test/jacocoTestReport.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          min-coverage-overall: 5 # 테스트가 매우 적기에 기준값도 작게 설정
+          min-coverage-changed-files: 5
+          update-comment: true
+
+      - name: Upload jacoco HTML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-html-report
+          path: ${{ github.workspace }}/build/reports/jacoco/test/html
+
+      - name: Docker Buildx 설치
+        uses: docker/setup-buildx-action@v2
+
+      - name: Docker Hub 로그인
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Docker Build 와 Push
+        uses: docker/build-push-action@v5.1.0
+        with:
+          push: true # 빌드 완료 후 Docker Hub로 푸시
+          context: . # Dockerfile이 위치한 경로
+          platforms: linux/amd64,linux/arm64 # 멀티 플랫폼 지원
+          tags: ${{secrets.DOCKERHUB_USERNAME}}/${{secrets.IMAGE_NAME}}:latest
+          #cache-from: type=gha # GitHub Actions 캐싱 활성화
+          #cache-to: type=gha,mode=max # 최대 캐싱 활성화
+
+
+

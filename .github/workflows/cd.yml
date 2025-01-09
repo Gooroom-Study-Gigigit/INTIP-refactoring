@@ -1,0 +1,24 @@
+name: Deploy 자동화
+
+on:
+  push:
+    branches: ["dev", "main"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: ssh-scp-ssh-pipelines
+        uses: cross-the-world/ssh-scp-ssh-pipelines@v1.1.4
+        with:
+          host: ${{ secrets.HOST }} # 서버 호스트
+          port: 22
+          user: ec2-user # 서버 사용자 이름
+          key:  ${{ secrets.PRIVATE_KEY }}# ssh 접근 권한 정보(ex:pum key)
+          first_ssh: |
+            echo 배포 시작
+            ./deploy.sh
+            echo 배포 완료
+
