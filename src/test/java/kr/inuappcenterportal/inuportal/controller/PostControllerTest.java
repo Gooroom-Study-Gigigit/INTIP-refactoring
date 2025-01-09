@@ -76,21 +76,27 @@ class PostControllerTest {
                 .build();
         memberRepository.save(testMember);
 
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(
-                        testMember, null, List.of(new SimpleGrantedAuthority("ROLE_USER"))
-                )
-        );
-
         // 카테고리 초기 설정
         categoryRepository.save(new Category("수강신청"));
         categoryRepository.save(new Category("장학금"));
+    }
+
+    private void setAuthenticationForTestMember() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        testMember,
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                )
+        );
     }
 
     @Test
     @DisplayName("게시글 저장")
     void savePost() throws Exception {
         // given
+        setAuthenticationForTestMember();
+
         PostDto postDto = PostDto.builder()
                 .title("Integration Test Title")
                 .content("Integration Test Content")
@@ -118,6 +124,8 @@ class PostControllerTest {
     @DisplayName("게시글 조회")
     void getPost() throws Exception {
         // given
+        setAuthenticationForTestMember();
+
         Post post = Post.builder()
                 .title("Test Title")
                 .content("Test Content")
@@ -140,6 +148,8 @@ class PostControllerTest {
     @DisplayName("게시글 삭제")
     void deletePost() throws Exception {
         // given
+        setAuthenticationForTestMember();
+
         Post post = Post.builder()
                 .title("Test Title")
                 .content("Test Content")
@@ -163,6 +173,8 @@ class PostControllerTest {
     @DisplayName("게시글 수정")
     void updatePost() throws Exception {
         // given
+        setAuthenticationForTestMember();
+
         Post post = Post.builder()
                 .title("Original Title")
                 .content("Original Content")
@@ -207,6 +219,9 @@ class PostControllerTest {
     @Test
     @DisplayName("존재하지 않는 게시글 삭제")
     void deletePost_NotFound() throws Exception {
+        // given
+        setAuthenticationForTestMember();
+
         // when & then
         mockMvc.perform(delete("/api/posts/{postId}", 9999L)) // 존재하지 않는 ID
                 .andExpect(status().isNotFound())
@@ -217,6 +232,8 @@ class PostControllerTest {
     @DisplayName("익명 게시글 작성")
     void saveAnonymousPost() throws Exception {
         // given
+        setAuthenticationForTestMember();
+
         PostDto anonymousPostDto = PostDto.builder()
                 .title("Anonymous Post")
                 .content("This is anonymous content.")
@@ -244,6 +261,8 @@ class PostControllerTest {
     @DisplayName("유효하지 않은 게시글 저장 요청")
     void savePost_InvalidPost() throws Exception {
         // given
+        setAuthenticationForTestMember();
+
         PostDto invalidPostDto = PostDto.builder()
                 .title("")
                 .content("")
@@ -264,6 +283,8 @@ class PostControllerTest {
     @DisplayName("존재하지 않는 카테고리로 게시글 작성")
     void savePost_InvalidCategory() throws Exception {
         // given
+        setAuthenticationForTestMember();
+
         PostDto invalidCategoryPost = PostDto.builder()
                 .title("Test Title")
                 .content("Test Content")
@@ -278,5 +299,27 @@ class PostControllerTest {
                         .content(postJson))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.msg").value("존재하지 않는 카테고리입니다."));
+    }
+
+    @Test
+    @DisplayName("비로그인 사용자 게시글 작성 시도")
+    void savePost_Unauthenticated() throws Exception {
+        // SecurityContext 초기화
+        SecurityContextHolder.clearContext();
+
+        PostDto postDto = PostDto.builder()
+                .title("Unauthenticated Title")
+                .content("Unauthenticated Content")
+                .category("수강신청")
+                .anonymous(true)
+                .build();
+        String postJson = objectMapper.writeValueAsString(postDto);
+
+        // when & then
+        mockMvc.perform(post("/api/posts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(postJson))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.msg").value("인증이 실패하였습니다."));
     }
 }
