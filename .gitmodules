@@ -1,3 +1,3 @@
-[submodule "seungjin-yml-importer"]
-	path = seungjin-yml-importer
-	url = https://github.com/Gooroom-Study-Gigigit/seungjin-yml-importer.git
+[submodule "INTIP-refactoring-yml-import"]
+	path = INTIP-refactoring-yml-import
+	url = https://github.com/Gooroom-Study-Gigigit/INTIP-refactoring-yml-import.git

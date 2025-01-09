@@ -88,4 +88,21 @@ tasks.named('jacocoTestReport') {
 
     // finalizedBy tasks.named('jacocoTestCoverageVerification') // 리포트 생성 후 검증
 }
+// 1. 서브모듈에서 *.yml 파일을 복사하는 작업 등록
+tasks.register("copyPrivate", Copy) {
+    from("$projectDir/INTIP-refactoring-yml-import") // 서브모듈 경로
+    include("*.yml")                         // 복사할 파일 패턴 (*.yml)
+    into("$projectDir/src/main/resources")   // 복사 대상 경로
+}
+
+// 2. processResources 작업에 copyPrivate 작업 의존 추가
+tasks.named("processResources") {
+    dependsOn("copyPrivate") // processResources는 copyPrivate 작업 후 실행
+}
+
+// 3. build 작업에도 copyPrivate 작업 의존 추가
+tasks.named("build") {
+    dependsOn("copyPrivate") // build 시에만 copyPrivate 작업이 실행되도록 설정
+}
+
 
