@@ -2,6 +2,7 @@ package kr.inuappcenterportal.inuportal.repository;
 
 import kr.inuappcenterportal.inuportal.domain.report.model.Report;
 import kr.inuappcenterportal.inuportal.domain.report.repository.ReportRepository;
+import module.IntegrationSupportTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,14 +16,12 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
-@SpringBootTest
-@Transactional
-public class ReportRepositoryTest {
+public class ReportRepositoryTest extends IntegrationSupportTest {
 
     @Autowired
     ReportRepository reportRepository;
 
-    //@Test
+    @Test
     @DisplayName("Report 객체에 대해 페이징 조회합니다.")
     void findAllBy() {
         //given
