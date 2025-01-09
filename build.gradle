@@ -59,6 +59,12 @@ dependencies {
 
 }
 
+
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
 // 제외할 디렉토리 및 파일 패턴을 공통 변수로 선언
 ext.jacocoExcludes = [
         "**/generated/**", // Querydsl Qfile
@@ -66,10 +72,6 @@ ext.jacocoExcludes = [
         "**/exception/**", // 커스텀 예외
         "**/config/**",    // 설정 파일
 ]
-
-tasks.named('test') {
-    useJUnitPlatform()
-}
 
 tasks.named('jacocoTestReport') {
     dependsOn(tasks.named('test')) // 테스트 실행 후 리포트 생성
@@ -86,8 +88,25 @@ tasks.named('jacocoTestReport') {
             })
     )
 
-    // finalizedBy tasks.named('jacocoTestCoverageVerification') // 리포트 생성 후 검증
+     finalizedBy tasks.named('jacocoTestCoverageVerification') // 리포트 생성 후 검증
 }
+tasks.jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            enabled = true
+            element = "BUNDLE" // 전체 모듈 수준에서 통합 커버리지 검증
+
+            limit {
+                counter = "INSTRUCTION" // 라인 커버리지 기준
+                value = "COVEREDRATIO"
+                minimum = 0.30
+            }
+            excludes = jacocoExcludes
+        }
+    }
+}
+
+
 // 1. 서브모듈에서 *.yml 파일을 복사하는 작업 등록
 tasks.register("copyPrivate", Copy) {
     from("$projectDir/INTIP-refactoring-yml-import") // 서브모듈 경로
