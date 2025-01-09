@@ -50,8 +50,6 @@ public class ReportControllerTest {
     @Autowired
     MockMvc mockMvc;
     ObjectMapper objectMapper = new ObjectMapper();
-    @Autowired
-    ReportController reportController;
     @MockBean
     ReportService reportService;
     @MockBean

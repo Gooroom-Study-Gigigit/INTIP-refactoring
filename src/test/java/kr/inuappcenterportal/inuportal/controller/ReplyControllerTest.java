@@ -12,6 +12,7 @@ import kr.inuappcenterportal.inuportal.global.config.SecurityConfig;
 import kr.inuappcenterportal.inuportal.global.config.TokenProvider;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyErrorCode;
 import kr.inuappcenterportal.inuportal.global.exception.ex.MyException;
+import module.ControllerTestSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,24 +31,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(value = ReplyController.class)
 @MockBean(JpaMetamodelMappingContext.class)
 @Import({SecurityConfig.class})
-public class ReplyControllerTest {
+public class ReplyControllerTest extends ControllerTestSupport {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockBean
-    private ReplyCommandService replyCommandService;
-
-    @MockBean
-    private ReplyLikeService replyLikeService;
-
-    @MockBean
-    private TokenProvider tokenProvider;
-
-    private ObjectMapper objectMapper = new ObjectMapper();
+//
+//    @MockBean
+//    private ReplyCommandService replyCommandService;
+//
+//    @MockBean
+//    private ReplyLikeService replyLikeService;
+//
+//    @MockBean
+//    private TokenProvider tokenProvider;
+//
+//    private ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
     @WithMockCustom //Custom MockUser

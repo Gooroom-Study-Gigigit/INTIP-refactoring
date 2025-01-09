@@ -22,6 +22,7 @@ import kr.inuappcenterportal.inuportal.domain.reply.service.ReplyQueryService;
 import kr.inuappcenterportal.inuportal.global.config.SecurityConfig;
 import kr.inuappcenterportal.inuportal.global.config.TokenProvider;
 import kr.inuappcenterportal.inuportal.global.dto.ListResponseDto;
+import module.ControllerTestSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,10 +53,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(MemberController.class)
 @MockBean(JpaMetamodelMappingContext.class)
 @Import(SecurityConfig.class)
-public class MemberControllerTest {
+public class MemberControllerTest extends ControllerTestSupport {
 
     public static final String MEMBER_API_BASE_PATH = "/api/members";
     private static final Long TEST_MEMBER_ID = 1L;
@@ -63,22 +63,22 @@ public class MemberControllerTest {
     private static final String TEST_REFRESH_TOKEN = "testRefreshToken";
     private static final long TEST_EXPIRATION = 3600;
 
-    private ObjectMapper objectMapper;
+//    private ObjectMapper objectMapper;
+//
+//    @Autowired
+//    MockMvc mockMvc;
 
-    @Autowired
-    MockMvc mockMvc;
-
-    @MockBean
-    MemberService memberService;
-
-    @MockBean
-    TokenProvider tokenProvider;
-
-    @MockBean
-    private PostService postService;
-
-    @MockBean
-    private ReplyQueryService replyQueryService;
+//    @MockBean
+//    MemberService memberService;
+//
+//    @MockBean
+//    TokenProvider tokenProvider;
+//
+//    @MockBean
+//    private PostService postService;
+//
+//    @MockBean
+//    private ReplyQueryService replyQueryService;
 
     @BeforeEach
     void setUp() {
