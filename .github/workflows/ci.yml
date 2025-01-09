@@ -95,8 +95,8 @@ jobs:
           context: . # Dockerfile이 위치한 경로
           platforms: linux/amd64,linux/arm64 # 멀티 플랫폼 지원
           tags: ${{secrets.DOCKERHUB_USERNAME}}/${{secrets.IMAGE_NAME}}:latest
-          cache-from: type=gha # GitHub Actions 캐싱 활성화
-          cache-to: type=gha,mode=max # 최대 캐싱 활성화
+          #cache-from: type=gha # GitHub Actions 캐싱 활성화
+          #cache-to: type=gha,mode=max # 최대 캐싱 활성화
 
 
 
