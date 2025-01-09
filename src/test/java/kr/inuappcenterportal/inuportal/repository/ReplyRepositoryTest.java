@@ -49,12 +49,6 @@ public class ReplyRepositoryTest extends IntegrationSupportTest {
         postRepository.save(post);
     }
 
-    @AfterEach
-    void clearData() {
-        replyRepository.deleteAll();
-        postRepository.deleteAll();
-        memberRepository.deleteAll();
-    }
 
     @Test
     @DisplayName("멤버가 작성한 모든 댓글을 생성시간 기준 내림차순으로 조회.")
