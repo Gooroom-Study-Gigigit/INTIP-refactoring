@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,6 +12,7 @@ import lombok.NoArgsConstructor;
 @Schema(description = "게시글 등록/수정 요청Dto")
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
 public class PostDto {
 
     @Schema(description = "제목",example = "제목")

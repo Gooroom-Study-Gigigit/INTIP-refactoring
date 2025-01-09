@@ -3,6 +3,8 @@ package kr.inuappcenterportal.inuportal.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import kr.inuappcenterportal.inuportal.domain.category.model.Category;
+import kr.inuappcenterportal.inuportal.domain.category.repository.CategoryRepository;
 import kr.inuappcenterportal.inuportal.domain.member.model.Member;
 import kr.inuappcenterportal.inuportal.domain.member.repository.MemberRepository;
 import kr.inuappcenterportal.inuportal.domain.post.dto.PostDto;
@@ -51,6 +53,9 @@ class PostControllerTest {
     @MockBean
     private RedisService redisService;
 
+    @Autowired
+    private CategoryRepository categoryRepository;
+
     private Member testMember;
 
     @BeforeEach
@@ -61,6 +66,7 @@ class PostControllerTest {
         // 데이터 초기화
         postRepository.deleteAll();
         memberRepository.deleteAll();
+        categoryRepository.deleteAll();
 
         // 테스트용 Member 생성 및 SecurityContext에 주입
         testMember = Member.builder()
@@ -75,6 +81,10 @@ class PostControllerTest {
                         testMember, null, List.of(new SimpleGrantedAuthority("ROLE_USER"))
                 )
         );
+
+        // 카테고리 초기 설정
+        categoryRepository.save(new Category("수강신청"));
+        categoryRepository.save(new Category("장학금"));
     }
 
     @Test
@@ -85,7 +95,7 @@ class PostControllerTest {
                 .title("Integration Test Title")
                 .content("Integration Test Content")
                 .category("수강신청")
-                .anonymous(true)
+                .anonymous(false)
                 .build();
         String postJson = objectMapper.writeValueAsString(postDto);
 
@@ -147,5 +157,126 @@ class PostControllerTest {
 
         // then
         assertThat(postRepository.findById(post.getId())).isEmpty();
+    }
+
+    @Test
+    @DisplayName("게시글 수정")
+    void updatePost() throws Exception {
+        // given
+        Post post = Post.builder()
+                .title("Original Title")
+                .content("Original Content")
+                .category("수강신청")
+                .anonymous(false)
+                .member(testMember)
+                .imageCount(0)
+                .build();
+        postRepository.save(post);
+
+        PostDto updateDto = PostDto.builder()
+                .title("Updated Title")
+                .content("Updated Content")
+                .category("장학금")
+                .anonymous(false)
+                .build();
+        String updateJson = objectMapper.writeValueAsString(updateDto);
+
+        // when
+        mockMvc.perform(put("/api/posts/{postId}", post.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updateJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.msg").value("게시글 수정 성공"));
+
+        // then
+        Post updatedPost = postRepository.findById(post.getId()).orElseThrow();
+        assertThat(updatedPost.getTitle()).isEqualTo("Updated Title");
+        assertThat(updatedPost.getContent()).isEqualTo("Updated Content");
+        assertThat(updatedPost.getCategory()).isEqualTo("장학금");
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 게시글 조회")
+    void getPost_NotFound() throws Exception {
+        // when & then
+        mockMvc.perform(get("/api/posts/{postId}", 9999L)) // 존재하지 않는 ID
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.msg").value("존재하지 않는 게시글입니다."));
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 게시글 삭제")
+    void deletePost_NotFound() throws Exception {
+        // when & then
+        mockMvc.perform(delete("/api/posts/{postId}", 9999L)) // 존재하지 않는 ID
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.msg").value("존재하지 않는 게시글입니다."));
+    }
+
+    @Test
+    @DisplayName("익명 게시글 작성")
+    void saveAnonymousPost() throws Exception {
+        // given
+        PostDto anonymousPostDto = PostDto.builder()
+                .title("Anonymous Post")
+                .content("This is anonymous content.")
+                .category("수강신청")
+                .anonymous(true)
+                .build();
+        String postJson = objectMapper.writeValueAsString(anonymousPostDto);
+
+        // when
+        mockMvc.perform(post("/api/posts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(postJson))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.msg").value("게시글 등록 성공"));
+
+        // then
+        Post savedPost = postRepository.findAll().get(0);
+        assertThat(savedPost.getTitle()).isEqualTo("Anonymous Post");
+        assertThat(savedPost.getContent()).isEqualTo("This is anonymous content.");
+        assertThat(savedPost.getMember()).isEqualTo(testMember);
+        assertThat(savedPost.getAnonymous()).isTrue();
+    }
+
+    @Test
+    @DisplayName("유효하지 않은 게시글 저장 요청")
+    void savePost_InvalidPost() throws Exception {
+        // given
+        PostDto invalidPostDto = PostDto.builder()
+                .title("")
+                .content("")
+                .category("수강신청")
+                .anonymous(true)
+                .build();
+        String postJson = objectMapper.writeValueAsString(invalidPostDto);
+
+        // when & then
+        mockMvc.perform(post("/api/posts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(postJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.msg").value("must not be blank"));
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 카테고리로 게시글 작성")
+    void savePost_InvalidCategory() throws Exception {
+        // given
+        PostDto invalidCategoryPost = PostDto.builder()
+                .title("Test Title")
+                .content("Test Content")
+                .category("잘못된 카테고리")
+                .anonymous(false)
+                .build();
+        String postJson = objectMapper.writeValueAsString(invalidCategoryPost);
+
+        // when & then
+        mockMvc.perform(post("/api/posts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(postJson))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.msg").value("존재하지 않는 카테고리입니다."));
     }
 }
